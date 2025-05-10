@@ -1,0 +1,35 @@
+import Link from "next/link";
+import { Film, FolderKanban } from "lucide-react";
+
+export default function Header() {
+  return (
+    <header className="bg-card shadow-md">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <Link
+            href="/"
+            className="flex items-center space-x-2 text-2xl font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            <Film className="h-8 w-8" />
+            <span>Slide Back</span>
+          </Link>
+          <nav className="flex items-center space-x-2 sm:space-x-4">
+            <Link
+              href="/"
+              className="text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
+            >
+              Create Slideshow
+            </Link>
+            <Link
+              href="/files"
+              className="flex items-center text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
+            >
+              <FolderKanban className="h-4 w-4 mr-1 sm:mr-2" />
+              My Files
+            </Link>
+          </nav>
+        </div>
+      </div>
+    </header>
+  );
+}
