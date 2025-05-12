@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["picsum.photos"], // Add the domain here
+    domains: [
+      "picsum.photos",
+      "qgame3ccfcbtygae.public.blob.vercel-storage.com", // Add the required domain here
+    ],
   },
 };
 
