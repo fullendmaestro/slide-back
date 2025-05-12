@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Film, GalleryVertical } from "lucide-react";
+import { Film, FolderKanban } from "lucide-react";
+import { ThemeToggleButton } from "@/components/theme/ThemeToggleButton";
 
 export default function Header() {
   return (
@@ -13,15 +14,24 @@ export default function Header() {
             <Film className="h-8 w-8" />
             <span>Slide Back</span>
           </Link>
-          <nav className="flex items-center space-x-2 sm:space-x-4">
-            <Link
-              href="/files"
-              className="flex items-center text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
-            >
-              <GalleryVertical className="h-4 w-4 mr-1 sm:mr-2" />
-              My Gallery
-            </Link>
-          </nav>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <nav className="flex items-center space-x-2 sm:space-x-4">
+              <Link
+                href="/"
+                className="text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Create Slideshow
+              </Link>
+              <Link
+                href="/files"
+                className="flex items-center text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
+              >
+                <FolderKanban className="h-4 w-4 mr-1 sm:mr-2" />
+                My Files
+              </Link>
+            </nav>
+            <ThemeToggleButton />
+          </div>
         </div>
       </div>
     </header>
