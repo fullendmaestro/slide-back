@@ -25,7 +25,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
-import type { SlideshowOptions, MusicTrack } from "./SlideshowPlayer"; // Import types
+import type { SlideshowOptions } from "./SlideshowPlayer"; // Import types
 import SlideshowOptionsPanel from "./SlidesshowOptionsPanel";
 
 interface PlayerControlsProps {
@@ -39,7 +39,7 @@ interface PlayerControlsProps {
   isVisible: boolean;
   options: SlideshowOptions;
   setOptions: Dispatch<SetStateAction<SlideshowOptions>>;
-  onMusicSelect: (track: MusicTrack) => void;
+  onMusicSelect: (track: any) => void;
   isMuted: boolean;
   onMuteToggle: () => void;
 }
