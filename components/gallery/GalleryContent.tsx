@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -13,25 +13,36 @@ import { AlertTriangle, GripVertical } from "lucide-react";
 import { MOCK_USER_FILES, type UserFile } from "@/lib/constants";
 import FileDisplayIcon from "@/components/files/FileDisplayIcon";
 import FileActions from "@/components/files/FileActions";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import GalleryToolbar from "./GalleryToolbar";
 import FileCard from "./FileCard";
 import { Checkbox } from "../ui/checkbox";
+import { Button } from "../ui/button"; // Added for delete confirmation
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type ViewMode = "grid-sm" | "grid-md" | "grid-lg" | "list";
-type SortByType = "name" | "date" | "size" | "type";
-type SortOrderType = "asc" | "desc";
+export type SortByType =
+  | "name"
+  | "dateModified"
+  | "dateCreated"
+  | "dateTaken"
+  | "size"
+  | "type";
+export type SortOrderType = "asc" | "desc";
 
 export default function GalleryContent() {
   const [files, setFiles] = useState<UserFile[]>(MOCK_USER_FILES);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>("grid-md");
-  const [sortBy, setSortBy] = useState<SortByType>("date");
+  const [sortBy, setSortBy] = useState<SortByType>("dateModified");
   const [sortOrder, setSortOrder] = useState<SortOrderType>("desc");
 
   const handleDeleteFile = (fileId: string) => {
+    const fileToDelete = files.find((f) => f.id === fileId);
+    if (!fileToDelete) return;
+
     setFiles((currentFiles) =>
       currentFiles.filter((file) => file.id !== fileId)
     );
@@ -40,8 +51,37 @@ export default function GalleryContent() {
       next.delete(fileId);
       return next;
     });
-    toast.success("File deleted successfully.");
+    toast(`"${fileToDelete.name}" has been deleted.`);
+    // API call to delete file would go here
   };
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedFiles(new Set());
+  }, []);
+
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedFiles.size === 0) return;
+
+    const numSelected = selectedFiles.size;
+    const fileOrFiles = numSelected === 1 ? "file" : "files";
+
+    toast.error(`Delete ${numSelected} selected ${fileOrFiles}?`, {
+      description: `This action cannot be undone. ${
+        numSelected > 1 ? "All selected files" : "The selected file"
+      } will be permanently deleted.`,
+      action: {
+        label: "Confirm Delete",
+        onClick: () => {
+          setFiles((currentFiles) =>
+            currentFiles.filter((file) => !selectedFiles.has(file.id))
+          );
+          setSelectedFiles(new Set());
+          toast(`${numSelected} ${fileOrFiles} deleted.`);
+          // API call for bulk delete would go here
+        },
+      },
+    });
+  }, [selectedFiles, files, toast]);
 
   const handleSelectFile = useCallback((fileId: string, checked: boolean) => {
     setSelectedFiles((prev) => {
@@ -60,22 +100,38 @@ export default function GalleryContent() {
       file.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Sorting logic
     filtered.sort((a, b) => {
       let compareA: any;
       let compareB: any;
+
+      const getDateValue = (dateStr: string | undefined): number => {
+        return dateStr ? new Date(dateStr).getTime() : 0;
+      };
 
       switch (sortBy) {
         case "name":
           compareA = a.name.toLowerCase();
           compareB = b.name.toLowerCase();
           break;
-        case "date":
-          compareA = new Date(a.lastModified).getTime();
-          compareB = new Date(b.lastModified).getTime();
+        case "dateModified":
+          compareA = getDateValue(a.lastModified);
+          compareB = getDateValue(b.lastModified);
+          break;
+        case "dateCreated":
+          compareA = getDateValue(a.dateCreated);
+          compareB = getDateValue(b.dateCreated);
+          break;
+        case "dateTaken":
+          compareA = getDateValue(a.dateTaken);
+          compareB = getDateValue(b.dateTaken);
           break;
         case "size":
           const parseSize = (sizeStr: string) => {
+            if (a.type === "folder" || b.type === "folder") {
+              if (a.type === "folder" && b.type !== "folder") return -1;
+              if (a.type !== "folder" && b.type === "folder") return 1;
+              return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+            }
             const parts = sizeStr.toLowerCase().split(" ");
             if (parts.length < 2) return 0;
             const value = parseFloat(parts[0]);
@@ -95,6 +151,17 @@ export default function GalleryContent() {
           return 0;
       }
 
+      if (
+        sortBy === "dateTaken" ||
+        sortBy === "dateCreated" ||
+        sortBy === "dateModified"
+      ) {
+        if (compareA === 0 && compareB !== 0)
+          return sortOrder === "asc" ? -1 : 1;
+        if (compareA !== 0 && compareB === 0)
+          return sortOrder === "asc" ? 1 : -1;
+      }
+
       if (compareA < compareB) return sortOrder === "asc" ? -1 : 1;
       if (compareA > compareB) return sortOrder === "asc" ? 1 : -1;
       return 0;
@@ -103,19 +170,23 @@ export default function GalleryContent() {
     return filtered;
   }, [files, searchTerm, sortBy, sortOrder]);
 
+  const isAllSelected = useMemo(() => {
+    return (
+      filteredAndSortedFiles.length > 0 &&
+      selectedFiles.size === filteredAndSortedFiles.length
+    );
+  }, [filteredAndSortedFiles, selectedFiles.size]);
+
   const handleSelectAll = useCallback(() => {
     if (isAllSelected) {
       setSelectedFiles(new Set());
     } else {
       setSelectedFiles(new Set(filteredAndSortedFiles.map((f) => f.id)));
     }
-  }, [filteredAndSortedFiles, selectedFiles]);
+  }, [filteredAndSortedFiles, isAllSelected]);
 
-  const isAllSelected =
-    filteredAndSortedFiles.length > 0 &&
-    selectedFiles.size === filteredAndSortedFiles.length;
-
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
     try {
       return format(new Date(dateString), "MMM dd, yyyy");
     } catch (error) {
@@ -125,20 +196,32 @@ export default function GalleryContent() {
 
   const gridClasses = {
     "grid-sm":
-      "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10",
+      "grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10",
     "grid-md":
-      "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+      "grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7",
     "grid-lg":
-      "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+      "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6",
   };
 
   const onDragStart = (e: React.DragEvent<HTMLDivElement>, fileId: string) => {
     e.dataTransfer.setData("fileId", fileId);
-    toast(`Dragging ${files.find((f) => f.id === fileId)?.name}`);
+    const draggedFile = files.find((f) => f.id === fileId);
+    if (draggedFile) {
+      // toast({title: `Dragging "${draggedFile.name}"`}); // Optional: reduce toast verbosity
+    }
   };
 
   const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    const targetElement = e.currentTarget as HTMLDivElement;
+    if (targetElement.classList.contains("drop-target-folder")) {
+      targetElement.classList.add("bg-primary/10", "ring-2", "ring-primary");
+    }
+  };
+
+  const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    const targetElement = e.currentTarget as HTMLDivElement;
+    targetElement.classList.remove("bg-primary/10", "ring-2", "ring-primary");
   };
 
   const onDropToFolder = (
@@ -146,17 +229,28 @@ export default function GalleryContent() {
     targetFolderId: string
   ) => {
     e.preventDefault();
+    onDragLeave(e);
     const draggedFileId = e.dataTransfer.getData("fileId");
-    if (draggedFileId && draggedFileId !== targetFolderId) {
-      const draggedFile = files.find((f) => f.id === draggedFileId);
-      const targetFolder = files.find((f) => f.id === targetFolderId);
-      if (draggedFile && targetFolder && targetFolder.type === "folder") {
-        toast.success(
-          `Dropped "${draggedFile.name}" onto "${targetFolder.name}".`
-        );
-      } else if (targetFolder && targetFolder.type !== "folder") {
-        toast.error(`Cannot drop onto "${targetFolder.name}". Not a folder.`);
-      }
+
+    const draggedFile = files.find((f) => f.id === draggedFileId);
+    const targetFolder = files.find((f) => f.id === targetFolderId);
+
+    if (
+      draggedFile &&
+      targetFolder &&
+      targetFolder.type === "folder" &&
+      draggedFileId !== targetFolderId
+    ) {
+      toast.success(
+        `Moved "${draggedFile.name}" into "${targetFolder.name}" (mock action)`
+      );
+      // Example:
+      // setFiles(prevFiles => prevFiles.filter(f => f.id !== draggedFileId));
+      // Consider optimistic update or refetching folder contents
+    } else if (targetFolder && targetFolder.type !== "folder") {
+      toast(`Cannot drop onto "${targetFolder.name}". Not a folder.`);
+    } else if (draggedFileId === targetFolderId) {
+      toast.error(`Cannot drop a folder onto itself.`);
     }
   };
 
@@ -182,6 +276,8 @@ export default function GalleryContent() {
         }}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        onDeselectAll={handleDeselectAll}
+        onDeleteSelected={handleDeleteSelected}
       />
       {filteredAndSortedFiles.length === 0 ? (
         <div className="flex-grow flex flex-col items-center justify-center p-10 text-center text-muted-foreground">
@@ -201,19 +297,26 @@ export default function GalleryContent() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px] px-2">
-                      <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={handleSelectAll}
-                        aria-label="Select all files in current view"
-                      />
+                      {selectedFiles.size === 0 && (
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all files in current view"
+                        />
+                      )}
                     </TableHead>
-                    <TableHead className="w-[50px] px-2 sm:px-4"></TableHead>
+                    <TableHead className="w-[50px] px-2 sm:px-4"></TableHead>{" "}
+                    {/* Icon */}
                     <TableHead>Name</TableHead>
                     <TableHead className="hidden sm:table-cell w-[120px] sm:w-[150px]">
                       Size
                     </TableHead>
                     <TableHead className="hidden md:table-cell w-[150px] sm:w-[180px]">
-                      Last Modified
+                      {sortBy === "dateCreated" && "Date Created"}
+                      {sortBy === "dateTaken" && "Date Taken"}
+                      {(sortBy === "dateModified" ||
+                        (sortBy !== "dateCreated" && sortBy !== "dateTaken")) &&
+                        "Date Modified"}
                     </TableHead>
                     <TableHead className="text-right w-[80px] px-2 sm:px-4">
                       Actions
@@ -224,16 +327,35 @@ export default function GalleryContent() {
                   {filteredAndSortedFiles.map((file) => (
                     <TableRow
                       key={file.id}
-                      className="hover:bg-muted/50 group"
-                      data-selected={selectedFiles.has(file.id)}
+                      className="hover:bg-muted/50 group transition-colors"
+                      data-state={
+                        selectedFiles.has(file.id) ? "selected" : "unselected"
+                      }
+                      onClick={() =>
+                        handleSelectFile(file.id, !selectedFiles.has(file.id))
+                      } // Select on row click
                       draggable={file.type !== "folder"}
                       onDragStart={(e) =>
                         file.type !== "folder" && onDragStart(e, file.id)
                       }
-                      onDragOver={onDragOver}
-                      onDrop={(e) => onDropToFolder(e, file.id)}
+                      onDragOver={
+                        file.type === "folder" ? onDragOver : undefined
+                      }
+                      onDrop={
+                        file.type === "folder"
+                          ? (e) => onDropToFolder(e, file.id)
+                          : undefined
+                      }
+                      onDragLeave={
+                        file.type === "folder" ? onDragLeave : undefined
+                      }
                     >
-                      <TableCell className="px-2">
+                      <TableCell
+                        className="px-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {" "}
+                        {/* Stop propagation for checkbox cell */}
                         <Checkbox
                           checked={selectedFiles.has(file.id)}
                           onCheckedChange={(checked) =>
@@ -245,7 +367,7 @@ export default function GalleryContent() {
                       <TableCell className="px-2 sm:px-4">
                         <FileDisplayIcon
                           type={file.type}
-                          className="text-muted-foreground group-hover:text-primary"
+                          className="text-muted-foreground group-hover:text-primary transition-colors"
                         />
                       </TableCell>
                       <TableCell
@@ -255,13 +377,25 @@ export default function GalleryContent() {
                         {file.name}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell text-muted-foreground">
-                        {file.size}
+                        {file.type === "folder" ? "-" : file.size}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {formatDate(file.lastModified)}
+                        {sortBy === "dateCreated"
+                          ? formatDate(file.dateCreated)
+                          : sortBy === "dateTaken"
+                          ? formatDate(file.dateTaken)
+                          : formatDate(file.lastModified)}
                       </TableCell>
-                      <TableCell className="text-right px-2 sm:px-4">
-                        <FileActions file={file} onDelete={handleDeleteFile} />
+                      <TableCell
+                        className="text-right px-2 sm:px-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {" "}
+                        {/* Stop propagation for actions cell */}
+                        <FileActions
+                          file={file}
+                          onDelete={() => handleDeleteFile(file.id)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -272,7 +406,7 @@ export default function GalleryContent() {
             <div
               className={`grid ${
                 gridClasses[viewMode as keyof typeof gridClasses]
-              } gap-2 transition-all duration-300 ease-in-out`}
+              } gap-3 sm:gap-4 transition-all duration-300 ease-in-out`}
             >
               {filteredAndSortedFiles.map((file) => (
                 <div
@@ -281,15 +415,25 @@ export default function GalleryContent() {
                   onDragStart={(e) =>
                     file.type !== "folder" && onDragStart(e, file.id)
                   }
-                  onDragOver={onDragOver}
-                  onDrop={(e) => onDropToFolder(e, file.id)}
-                  className={file.type === "folder" ? "drop-target-folder" : ""}
+                  onDragOver={file.type === "folder" ? onDragOver : undefined}
+                  onDrop={
+                    file.type === "folder"
+                      ? (e) => onDropToFolder(e, file.id)
+                      : undefined
+                  }
+                  onDragLeave={file.type === "folder" ? onDragLeave : undefined}
+                  className={cn(
+                    "transition-all duration-150 ease-out",
+                    file.type === "folder"
+                      ? "drop-target-folder rounded-lg"
+                      : ""
+                  )}
                 >
                   <FileCard
                     file={file}
                     isSelected={selectedFiles.has(file.id)}
                     onSelect={handleSelectFile}
-                    onDelete={handleDeleteFile}
+                    onDelete={() => handleDeleteFile(file.id)}
                     viewMode={viewMode as "grid-sm" | "grid-md" | "grid-lg"}
                   />
                 </div>

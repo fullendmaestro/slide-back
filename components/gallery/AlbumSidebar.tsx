@@ -13,7 +13,7 @@ import {
 import {
   GalleryVerticalEnd,
   Heart,
-  ImageIcon,
+  Folder,
   FolderPlus,
   MoreHorizontal,
 } from "lucide-react";
@@ -99,11 +99,11 @@ export default function AlbumSidebar() {
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        <SidebarSeparator className="my-2" />
+        <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between group-data-[collapsible=icon]:hidden">
-            <span>Albums</span>
+          <SidebarGroupLabel className="py-2 mb-3 flex items-center justify-between group-data-[collapsible=icon]:hidden">
+            <span className="text-lg">Albums</span>
             <Dialog
               open={isCreateAlbumOpen}
               onOpenChange={setIsCreateAlbumOpen}
@@ -151,7 +151,7 @@ export default function AlbumSidebar() {
                 className="group/album-item relative"
               >
                 <SidebarMenuButton tooltip={album.name} size="sm">
-                  <ImageIcon />
+                  <Folder />
                   <span>{album.name}</span>
                 </SidebarMenuButton>
                 <DropdownMenu>

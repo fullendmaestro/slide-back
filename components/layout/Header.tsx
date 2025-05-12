@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Film, FolderKanban } from "lucide-react";
+import { Film, GalleryVertical } from "lucide-react";
 
 export default function Header() {
   return (
@@ -15,17 +15,11 @@ export default function Header() {
           </Link>
           <nav className="flex items-center space-x-2 sm:space-x-4">
             <Link
-              href="/"
-              className="text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Create Slideshow
-            </Link>
-            <Link
               href="/files"
               className="flex items-center text-foreground hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium"
             >
-              <FolderKanban className="h-4 w-4 mr-1 sm:mr-2" />
-              My Files
+              <GalleryVertical className="h-4 w-4 mr-1 sm:mr-2" />
+              My Gallery
             </Link>
           </nav>
         </div>

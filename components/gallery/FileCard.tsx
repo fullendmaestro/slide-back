@@ -34,6 +34,12 @@ export default function FileCard({
     "grid-lg": "h-28 w-28",
   };
 
+  const imageSizes = {
+    "grid-sm": "(max-width: 767px) 128px, 144px", // Corresponds to w-32, md:w-36
+    "grid-md": "(max-width: 767px) 192px, 224px", // Corresponds to w-48, md:w-56
+    "grid-lg": "(max-width: 767px) 256px, 288px", // Corresponds to w-64, md:w-72
+  };
+
   return (
     <div
       className={cn(
@@ -54,9 +60,10 @@ export default function FileCard({
         <Image
           src={file.url!}
           alt={file.name}
-          layout="fill"
-          objectFit="cover"
-          className="transition-transform duration-300 group-hover:scale-105"
+          fill
+          sizes={imageSizes[viewMode]}
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          priority={isSelected} // Consider if this is the best strategy for priority
           data-ai-hint={file.dataAiHint || "gallery image"}
         />
       ) : (
@@ -88,18 +95,31 @@ export default function FileCard({
             {file.name}
           </p>
           <div
-            className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+            className="absolute top-1 right-1 z-10"
             onClick={(e) => e.stopPropagation()}
           >
+            {" "}
+            {/* Removed opacity toggle here, handled by parent overlay */}
             <FileActions file={file} onDelete={onDelete} />
           </div>
         </div>
       </div>
-      {/* Visible name when not hovered for small grid items */}
+      {/* Visible name when not hovered for small grid items if not selected */}
       {viewMode === "grid-sm" && !isSelected && (
         <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/40 backdrop-blur-sm group-hover:hidden group-focus-within:hidden">
           <p
             className="text-xs font-medium text-white truncate text-center"
+            title={file.name}
+          >
+            {file.name}
+          </p>
+        </div>
+      )}
+      {/* Visible name when not hovered for small grid items IF selected (provides persistent name context) */}
+      {viewMode === "grid-sm" && isSelected && (
+        <div className="absolute bottom-0 left-0 right-0 p-1 bg-primary/70 backdrop-blur-sm group-hover:hidden group-focus-within:hidden">
+          <p
+            className="text-xs font-medium text-primary-foreground truncate text-center"
             title={file.name}
           >
             {file.name}

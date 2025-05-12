@@ -6,8 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { memoryWizardSchema, type MemoryWizardData } from "@/lib/schema";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { toast } from "sonner"; // Updated to use sonner
-import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Wand2 } from "lucide-react";
@@ -17,6 +15,7 @@ import Step2DateRange from "./Step2DateRange";
 import Step3Album from "./Step3Album";
 import Step4MoodStyle from "./Step4MoodStyle";
 import Step5FileSources from "./Step5FileSources";
+import { toast } from "sonner";
 
 const TOTAL_STEPS = 5;
 
@@ -28,9 +27,14 @@ const stepTitles = [
   "Specify Media Types",
 ];
 
-export default function MemoryWizardForm() {
+interface MemoryWizardFormProps {
+  onSubmitForm: (data: MemoryWizardData) => void;
+}
+
+export default function MemoryWizardForm({
+  onSubmitForm,
+}: MemoryWizardFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const router = useRouter();
 
   const form = useForm<MemoryWizardData>({
     resolver: zodResolver(memoryWizardSchema),
@@ -45,15 +49,12 @@ export default function MemoryWizardForm() {
     mode: "onChange",
   });
 
-  const onSubmit: SubmitHandler<MemoryWizardData> = (data) => {
+  const processSubmit: SubmitHandler<MemoryWizardData> = (data) => {
     console.log("Memory Wizard Data:", data);
-    toast.success("Slideshow creation process started!", {
-      description:
-        "We've received your preferences and will begin generating your slideshow.",
+    toast.success("Slideshow preferences saved!", {
+      description: "Your slideshow is ready to view.",
     });
-    // Dummy navigation to slideshow page for now
-    // In a real app, you might wait for generation and then navigate
-    router.push("/slideshow/mock");
+    onSubmitForm(data);
   };
 
   const handleNext = async () => {
@@ -67,9 +68,11 @@ export default function MemoryWizardForm() {
         isValid = await form.trigger("dateRange");
         break;
       case 3:
+        // Album is optional, schema handles empty, but trigger to show potential specific errors if any
         isValid = await form.trigger("album");
         break;
       case 4:
+        // Mood and Style are optional, trigger to show potential specific errors if any
         isValid = await form.trigger(["mood", "style"]);
         break;
       case 5:
@@ -80,33 +83,34 @@ export default function MemoryWizardForm() {
     }
 
     const isStepValidBasedOnTrigger = isValid;
-    const isFormOverallValid = form.formState.isValid;
+    // form.formState.isValid reflects the entire form, which might not be what we want mid-wizard
+    // We rely on per-step trigger usually. For the last step, it's a full submit.
 
-    if (
-      (currentStep === 1 && isFormOverallValid) ||
-      (currentStep > 1 && isStepValidBasedOnTrigger)
-    ) {
+    if (isStepValidBasedOnTrigger) {
       if (currentStep < TOTAL_STEPS) {
         setCurrentStep((prev) => prev + 1);
       } else {
-        form.handleSubmit(onSubmit)();
+        form.handleSubmit(processSubmit)(); // This will call the main processSubmit
       }
     } else {
-      const firstError = Object.values(form.formState.errors)[0];
+      const errors = form.formState.errors;
       let errorMessage = "Please fill in the required fields correctly.";
-      if (firstError && typeof firstError.message === "string") {
-        errorMessage = firstError.message;
-      } else if (
-        firstError &&
-        firstError.root &&
-        typeof firstError.root.message === "string"
-      ) {
-        errorMessage = firstError.root.message;
-      }
+
+      if (currentStep === 1 && errors.prompt)
+        errorMessage = errors.prompt.message || errorMessage;
+      else if (currentStep === 2 && errors.dateRange?.to)
+        errorMessage = errors.dateRange.to.message || errorMessage;
+      // Prioritize 'to' for range errors
+      else if (currentStep === 2 && errors.dateRange?.from)
+        errorMessage = errors.dateRange.from.message || errorMessage;
+      else if (currentStep === 5 && errors.fileSources)
+        errorMessage =
+          errors.fileSources.message ||
+          errors.fileSources.root?.message ||
+          errorMessage;
 
       toast.error("Validation Error", {
-        description:
-          errorMessage || "Check the highlighted fields and try again.",
+        description: errorMessage,
       });
     }
   };
@@ -163,7 +167,7 @@ export default function MemoryWizardForm() {
                 onClick={handleNext}
                 className="shadow-md px-6 py-3 text-base bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {currentStep === TOTAL_STEPS ? "Create Slideshow" : "Next"}
+                {currentStep === TOTAL_STEPS ? "Slide Back" : "Next"}
               </Button>
             </div>
           </div>
