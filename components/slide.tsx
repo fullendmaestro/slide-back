@@ -107,3 +107,6 @@ const Slide = React.memo(function (props: StackedCarouselSlideProps) {
     </div>
   );
 });
+
+// Add displayName for debugging
+Slide.displayName = "Slide";
