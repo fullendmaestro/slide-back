@@ -7,10 +7,9 @@ import {
   Archive,
   FileAudio,
 } from "lucide-react";
-import type { UserFile } from "@/lib/constants";
 
 interface FileDisplayIconProps {
-  type: UserFile["type"];
+  type: string;
   className?: string;
 }
 

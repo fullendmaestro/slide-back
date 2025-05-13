@@ -2,7 +2,7 @@
 
 import type { UseFormReturn } from "react-hook-form";
 import type { MemoryWizardData } from "@/lib/schema";
-import { ALBUMS } from "@/lib/constants";
+import type { Album } from "@/lib/db/schema";
 import {
   FormControl,
   FormField,
@@ -22,9 +22,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Step3AlbumProps {
   form: UseFormReturn<MemoryWizardData>;
+  albums: Album[];
 }
 
-export default function Step3Album({ form }: Step3AlbumProps) {
+export default function Step3Album({ form, albums }: Step3AlbumProps) {
   return (
     <Card className="border-none shadow-none">
       <CardHeader>
@@ -50,7 +51,7 @@ export default function Step3Album({ form }: Step3AlbumProps) {
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  {ALBUMS.map((album) => (
+                  {albums.map((album) => (
                     <SelectItem key={album.id} value={album.id}>
                       {album.name}
                     </SelectItem>

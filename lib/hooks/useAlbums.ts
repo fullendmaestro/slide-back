@@ -5,9 +5,8 @@ import type { Album } from "@/lib/db/schema";
 
 // Fetch all albums
 export function useAlbums() {
-  const setAlbums = useAlbumStore((state) => state.setAlbums);
-  const setLoading = useAlbumStore((state) => state.setLoading);
-  const setError = useAlbumStore((state) => state.setError);
+  const queryClient = useQueryClient();
+  const { setAlbums, setLoading, setError } = useAlbumStore();
 
   return useQuery({
     queryKey: ["albums"],
@@ -17,30 +16,44 @@ export function useAlbums() {
         const response = await fetch("/api/albums");
 
         if (!response.ok) {
-          throw new Error("Failed to fetch albums");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch albums");
         }
 
         const data = await response.json();
         setAlbums(data);
         return data;
       } catch (error) {
-        setError(
-          error instanceof Error ? error.message : "Failed to fetch albums"
-        );
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to fetch albums";
+        setError(errorMessage);
         throw error;
       } finally {
         setLoading(false);
       }
     },
+    // Refetch on window focus and every 5 minutes
+    refetchOnWindowFocus: true,
+    refetchInterval: 5 * 60 * 1000,
+    // On success, update the album store
+    // onSuccess: (data) => {
+    //   setAlbums(data);
+    // },
+    // On error, set the error in the album store
+    // onError: (error) => {
+    //   setError(
+    //     error instanceof Error ? error.message : "Failed to fetch albums"
+    //   );
+    // },
   });
 }
 
 // Create a new album
 export function useCreateAlbum() {
   const queryClient = useQueryClient();
-  const addAlbum = useAlbumStore((state) => state.addAlbum);
+  const { addAlbum } = useAlbumStore();
 
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async ({
       name,
       description,
@@ -57,14 +70,16 @@ export function useCreateAlbum() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create album");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create album");
       }
 
       return response.json();
     },
     onSuccess: (data) => {
+      // Add the new album to the store
       addAlbum(data);
+      // Invalidate the albums query to refetch
       queryClient.invalidateQueries({ queryKey: ["albums"] });
       toast.success("Album created successfully");
     },
@@ -74,16 +89,14 @@ export function useCreateAlbum() {
       );
     },
   });
-
-  return mutation;
 }
 
 // Update an album
 export function useUpdateAlbum() {
   const queryClient = useQueryClient();
-  const updateAlbum = useAlbumStore((state) => state.updateAlbum);
+  const { updateAlbum } = useAlbumStore();
 
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async (album: Partial<Album> & { id: string }) => {
       const response = await fetch("/api/albums", {
         method: "PUT",
@@ -94,15 +107,19 @@ export function useUpdateAlbum() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update album");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update album");
       }
 
       return response.json();
     },
     onSuccess: (data) => {
+      // Update the album in the store
       updateAlbum(data);
+      // Invalidate the albums query to refetch
       queryClient.invalidateQueries({ queryKey: ["albums"] });
+      // If files are affected, invalidate the files query too
+      queryClient.invalidateQueries({ queryKey: ["files"] });
       toast.success("Album updated successfully");
     },
     onError: (error) => {
@@ -111,31 +128,33 @@ export function useUpdateAlbum() {
       );
     },
   });
-
-  return mutation;
 }
 
 // Delete an album
 export function useDeleteAlbum() {
   const queryClient = useQueryClient();
-  const removeAlbum = useAlbumStore((state) => state.removeAlbum);
+  const { removeAlbum } = useAlbumStore();
 
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async (albumId: string) => {
       const response = await fetch(`/api/albums?id=${albumId}`, {
         method: "DELETE",
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete album");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete album");
       }
 
       return { albumId };
     },
     onSuccess: ({ albumId }) => {
+      // Remove the album from the store
       removeAlbum(albumId);
+      // Invalidate the albums query to refetch
       queryClient.invalidateQueries({ queryKey: ["albums"] });
+      // Invalidate the files query to refetch (in case files were in this album)
+      queryClient.invalidateQueries({ queryKey: ["files"] });
       toast.success("Album deleted successfully");
     },
     onError: (error) => {
@@ -144,15 +163,13 @@ export function useDeleteAlbum() {
       );
     },
   });
-
-  return mutation;
 }
 
 // Add files to an album
 export function useAddFilesToAlbum() {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async ({
       albumId,
       fileIds,
@@ -169,13 +186,15 @@ export function useAddFilesToAlbum() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to add files to album");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add files to album");
       }
 
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both albums and files queries to refetch
+      queryClient.invalidateQueries({ queryKey: ["albums"] });
       queryClient.invalidateQueries({ queryKey: ["files"] });
       toast.success("Files added to album successfully");
     },
@@ -185,15 +204,13 @@ export function useAddFilesToAlbum() {
       );
     },
   });
-
-  return mutation;
 }
 
 // Remove files from an album
 export function useRemoveFilesFromAlbum() {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async ({
       albumId,
       fileIds,
@@ -210,13 +227,15 @@ export function useRemoveFilesFromAlbum() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to remove files from album");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to remove files from album");
       }
 
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both albums and files queries to refetch
+      queryClient.invalidateQueries({ queryKey: ["albums"] });
       queryClient.invalidateQueries({ queryKey: ["files"] });
       toast.success("Files removed from album successfully");
     },
@@ -228,6 +247,25 @@ export function useRemoveFilesFromAlbum() {
       );
     },
   });
+}
 
-  return mutation;
+// Get files in an album
+export function useAlbumFiles(albumId: string | null) {
+  return useQuery({
+    queryKey: ["albumFiles", albumId],
+    queryFn: async () => {
+      if (!albumId) return [];
+
+      const response = await fetch(`/api/albums/${albumId}/files`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch album files");
+      }
+
+      return response.json();
+    },
+    // Only run the query if albumId is provided
+    enabled: !!albumId,
+  });
 }

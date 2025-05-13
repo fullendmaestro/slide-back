@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner"; // Updated to use sonner
 import { MoreHorizontal, Download, Trash2, Edit3, Info } from "lucide-react";
-import type { UserFile } from "@/lib/constants";
+import type { File } from "@/lib/db/schema";
 
 interface FileActionsProps {
-  file: UserFile;
+  file: File;
   onDelete: (fileId: string) => void; // Callback to handle deletion in parent
   className?: string;
 }

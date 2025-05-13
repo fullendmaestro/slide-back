@@ -9,13 +9,16 @@ import { Form } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Wand2 } from "lucide-react";
+import { toast } from "sonner";
 
 import Step1Prompt from "./Step1Prompt";
 import Step2DateRange from "./Step2DateRange";
 import Step3Album from "./Step3Album";
 import Step4MoodStyle from "./Step4MoodStyle";
 import Step5FileSources from "./Step5FileSources";
-import { toast } from "sonner";
+import { useMemoryStore } from "@/lib/stores/memoryStore";
+import { useMemorySearch } from "@/lib/hooks/useMemory";
+import { useAlbums } from "@/lib/hooks/useAlbums";
 
 const TOTAL_STEPS = 5;
 
@@ -36,6 +39,17 @@ export default function MemoryWizardForm({
 }: MemoryWizardFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
 
+  // Load albums for the album selection step
+  const { data: albums } = useAlbums();
+
+  // Memory store actions
+  const setQuery = useMemoryStore((state) => state.setQuery);
+  const setDateRange = useMemoryStore((state) => state.setDateRange);
+  const setAlbumId = useMemoryStore((state) => state.setAlbumId);
+
+  // Memory search query
+  const memorySearch = useMemorySearch();
+
   const form = useForm<MemoryWizardData>({
     resolver: zodResolver(memoryWizardSchema),
     defaultValues: {
@@ -51,10 +65,27 @@ export default function MemoryWizardForm({
 
   const processSubmit: SubmitHandler<MemoryWizardData> = (data) => {
     console.log("Memory Wizard Data:", data);
-    toast.success("Slideshow preferences saved!", {
-      description: "Your slideshow is ready to view.",
-    });
-    onSubmitForm(data);
+
+    // Set the search parameters in the memory store
+    setQuery(data.prompt);
+    setDateRange(data.dateRange.from || null, data.dateRange.to || null);
+    setAlbumId(data.album || null);
+
+    // Trigger the search
+    memorySearch
+      .refetch()
+      .then(() => {
+        toast.success("Slideshow preferences saved!", {
+          description: "Your slideshow is ready to view.",
+        });
+        onSubmitForm(data);
+      })
+      .catch((error) => {
+        toast.error("Failed to create slideshow", {
+          description:
+            error instanceof Error ? error.message : "Please try again.",
+        });
+      });
   };
 
   const handleNext = async () => {
@@ -186,7 +217,9 @@ export default function MemoryWizardForm({
               <div className="flex-grow space-y-8">
                 {currentStep === 1 && <Step1Prompt form={form} />}
                 {currentStep === 2 && <Step2DateRange form={form} />}
-                {currentStep === 3 && <Step3Album form={form} />}
+                {currentStep === 3 && (
+                  <Step3Album form={form} albums={albums || []} />
+                )}
                 {currentStep === 4 && <Step4MoodStyle form={form} />}
                 {currentStep === 5 && <Step5FileSources form={form} />}
               </div>

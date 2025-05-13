@@ -15,6 +15,13 @@
       "when": 1747036870282,
       "tag": "0001_wild_stick",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747103466014,
+      "tag": "0002_talented_proteus",
+      "breakpoints": true
     }
   ]
 }

@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
 import { db } from "@/lib/db";
 import { file, albumFile } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
-// Get all files for the current user
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -15,81 +14,59 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const albumId = searchParams.get("albumId");
+    const favorites = searchParams.get("favorites") === "true";
 
-    let files;
+    let files: any = [];
 
-    console.log("log 2");
     if (albumId) {
-      // Get files for a specific album
-      files = await db.query.albumFile.findMany({
+      // Get files from a specific album
+      const albumFiles = await db.query.albumFile.findMany({
         where: eq(albumFile.albumId, albumId),
         with: {
           file: true,
         },
       });
 
-      // Extract just the file data
-      files = files.map((af) => af.file);
-      console.log("log 2");
+      // Extract the files and filter by user ID
+      albumFiles
+        .map((af) => af.file)
+        .filter((f) => f.userId === session?.user?.id);
+    } else if (favorites) {
+      // Get favorite files
+      files = await db.query.file.findMany({
+        where: and(eq(file.userId, session.user.id), eq(file.isFavorite, true)),
+        orderBy: [desc(file.lastModified)],
+      });
     } else {
-      // Get all files for the user
+      // Get all files
       files = await db.query.file.findMany({
         where: eq(file.userId, session.user.id),
-        // orderBy: [file.dateCreated, "desc"],
+        orderBy: [desc(file.lastModified)],
       });
-      console.log("returning files", files);
     }
 
-    return NextResponse.json(files);
+    // For each file, get its albums
+    const filesWithAlbums = await Promise.all(
+      files.map(async (f) => {
+        const fileAlbums = await db.query.albumFile.findMany({
+          where: eq(albumFile.fileId, f.id),
+          with: {
+            album: true,
+          },
+        });
+
+        return {
+          ...f,
+          albums: fileAlbums.map((fa) => fa.album),
+        };
+      })
+    );
+
+    return NextResponse.json(filesWithAlbums);
   } catch (error) {
     console.error("Error fetching files:", error);
     return NextResponse.json(
       { error: "Failed to fetch files" },
-      { status: 500 }
-    );
-  }
-}
-
-// Delete a file
-export async function DELETE(request: Request) {
-  try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const fileId = searchParams.get("id");
-
-    if (!fileId) {
-      return NextResponse.json(
-        { error: "File ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Check if the file belongs to the user
-    const fileToDelete = await db.query.file.findFirst({
-      where: eq(file.id, fileId),
-    });
-
-    if (!fileToDelete) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
-    }
-
-    if (fileToDelete.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Delete the file
-    await db.delete(file).where(eq(file.id, fileId));
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting file:", error);
-    return NextResponse.json(
-      { error: "Failed to delete file" },
       { status: 500 }
     );
   }

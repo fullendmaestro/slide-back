@@ -111,6 +111,7 @@ export interface UserFile {
   dateTaken?: string; // ISO date string
   url?: string; // for download/preview
   dataAiHint?: string; // For image generation hints
+  isFavorite?: boolean;
 }
 
 export const MOCK_USER_FILES: UserFile[] = [

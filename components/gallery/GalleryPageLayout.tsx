@@ -26,7 +26,7 @@ export default function GalleryPageLayout() {
           <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
             Slide Back
           </h2>
-          <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
+          {/* <SidebarTrigger className="group-data-[collapsible=icon]:hidden" /> */}
         </SidebarHeader>
         <SidebarContent className="p-0">
           <AlbumSidebar />

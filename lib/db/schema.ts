@@ -7,14 +7,9 @@ import {
   text,
   jsonb,
   integer,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-
-// biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-export const db = drizzle(client);
 
 export const user = pgTable("User", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -56,6 +51,7 @@ export const file = pgTable("File", {
   dateCreated: timestamp("date_created").defaultNow().notNull(),
   lastModified: timestamp("last_modified").defaultNow().notNull(),
   embedding: text("embedding"), // Vector embedding of the description for similarity search
+  isFavorite: boolean("is_favorite").default(false).notNull(),
 });
 
 export type File = InferSelectModel<typeof file>;

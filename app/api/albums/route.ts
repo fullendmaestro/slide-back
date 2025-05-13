@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
 import { db } from "@/lib/db";
 import { album } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 // Get all albums for the current user
 export async function GET() {
@@ -15,8 +15,9 @@ export async function GET() {
 
     const albums = await db.query.album.findMany({
       where: eq(album.userId, session.user.id),
-      // orderBy: [album.name, "asc"],
+      orderBy: [asc(album.name)],
     });
+    console.log("returning albums", albums);
 
     return NextResponse.json(albums);
   } catch (error) {
@@ -54,6 +55,8 @@ export async function POST(request: Request) {
         description: description || null,
       })
       .returning();
+
+    console.log("created album", newAlbum);
 
     return NextResponse.json(newAlbum);
   } catch (error) {
