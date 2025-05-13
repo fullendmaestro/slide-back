@@ -1,8 +1,8 @@
 import { embed, generateText } from "ai";
 import { google } from "@ai-sdk/google";
-import { db } from "@/lib/db/schema";
 import { file, albumFile } from "@/lib/db/schema";
 import { eq, and, between, inArray, sql } from "drizzle-orm"; // Ensure this is imported
+import { db } from "../db";
 
 // Define the Gemini embedding model
 const embeddingModel = google.textEmbeddingModel("text-embedding-004", {
@@ -61,7 +61,7 @@ export async function findRelevantContent(
     const queryEmbeddingString = JSON.stringify(queryEmbedding);
 
     // Build the SQL query for similarity search
-    let filesQuery = db.select().from(file);
+    const filesQuery = db.select().from(file);
     filesQuery.where(eq(file.userId, userId));
 
     // Apply date filter if provided

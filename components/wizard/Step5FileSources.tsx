@@ -26,7 +26,7 @@ export default function Step5FileSources({ form }: Step5FileSourcesProps) {
           What Are You Including?
         </CardTitle>
         <FormDescription>
-          Specify the types of media you'll be using in your slideshow.
+          Specify the types of media you&apos;ll be using in your slideshow.
         </FormDescription>
       </CardHeader>
       <CardContent className="space-y-6">

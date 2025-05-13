@@ -7,6 +7,7 @@ import {
 } from "react-stacked-center-carousel";
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import "./slide.css";
 
 // Updated data array with only an image field
@@ -97,7 +98,7 @@ const Slide = React.memo(function (props: StackedCarouselSlideProps) {
             if (!isCenterSlide) swipeTo(slideIndex);
           }}
         />
-        <img
+        <Image
           className="cover-image fill"
           src={image}
           alt={`Memory ${dataIndex + 1}`}
