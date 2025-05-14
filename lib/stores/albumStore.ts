@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Album } from "@/lib/db/schema";
-import { devtools } from "@/lib/stores/devtools";
 
 type AlbumView = "all" | "album" | "favorites";
 
