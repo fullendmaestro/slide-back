@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import type React from "react";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Table,
   TableBody,
@@ -30,11 +30,21 @@ import { useAddFilesToAlbum } from "@/lib/hooks/useAlbums";
 import FileUploader from "@/components/files/FileUploader";
 import FilePreviewModal from "./FilePreviewModal";
 import FileDetailsDialog from "./FileDetailsDialog";
-import FileContextMenu from "./FileContextMenu";
 import AddToAlbumDialog from "./AddToAlbumDialog";
 import type { File } from "@/lib/db/schema";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function GalleryContent() {
+  // Use a ref to prevent infinite re-renders
+  const detailsFileRef = useRef<File | null>(null);
+
+  // Track right-click position for context menu
+  const [contextMenuPosition, setContextMenuPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [contextMenuFile, setContextMenuFile] = useState<File | null>(null);
+
   // Get state from file store
   const {
     selectedFiles,
@@ -78,9 +88,47 @@ export default function GalleryContent() {
   const toggleFavoriteMutation = useToggleFavorite();
   const addFilesToAlbumMutation = useAddFilesToAlbum();
 
-  // Clear selection when changing views
+  // Inside the GalleryContent component, add this function
+  const handleFileDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    file: File
+  ) => {
+    // Set a class on the body to indicate dragging state
+    document.body.classList.add("dragging-file");
+
+    // You can add additional visual feedback here
+  };
+
+  // Add this function to handle drag end
+  const handleDragEnd = () => {
+    document.body.classList.remove("dragging-file");
+  };
+
+  // Close context menu when clicking outside
   useEffect(() => {
+    const handleClickOutside = () => {
+      setContextMenuPosition(null);
+      setContextMenuFile(null);
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  // Update the useEffect to add and remove event listeners
+  useEffect(() => {
+    // Clear selection when changing views
     deselectAllFiles();
+
+    // Add event listener for drag end
+    document.addEventListener("dragend", handleDragEnd);
+
+    return () => {
+      document.removeEventListener("dragend", handleDragEnd);
+    };
   }, [currentAlbumId, currentView, deselectAllFiles]);
 
   const handleDeleteFile = (fileId: string) => {
@@ -240,21 +288,47 @@ export default function GalleryContent() {
     setPreviewFile(file);
   };
 
+  // Handle right-click event
   const handleFileRightClick = (e: React.MouseEvent, file: File) => {
-    // Context menu is handled by the FileContextMenu component
-    // This is just a placeholder for any additional logic
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Set the context menu position and file
+    setContextMenuPosition({ x: e.clientX, y: e.clientY });
+    setContextMenuFile(file);
   };
 
-  const handleAddToAlbum = (file: File) => {
-    // Select just this file and open the add to album dialog
-    deselectAllFiles();
-    toggleFileSelection(file.id);
-    setAddToAlbumOpen(true);
-  };
+  // Fix the infinite re-render by using a ref and useCallback
+  const handleViewDetails = useCallback(
+    (file: File) => {
+      // Store the file in the ref first
+      detailsFileRef.current = file;
 
-  const handleViewDetails = (file: File) => {
-    setDetailsFile(file);
-  };
+      // Use setTimeout to break the render cycle
+      setTimeout(() => {
+        setDetailsFile(detailsFileRef.current);
+      }, 0);
+
+      // Close context menu
+      setContextMenuPosition(null);
+      setContextMenuFile(null);
+    },
+    [setDetailsFile]
+  );
+
+  const handleAddToAlbum = useCallback(
+    (file: File) => {
+      // Select just this file and open the add to album dialog
+      deselectAllFiles();
+      toggleFileSelection(file.id);
+      setAddToAlbumOpen(true);
+
+      // Close context menu
+      setContextMenuPosition(null);
+      setContextMenuFile(null);
+    },
+    [deselectAllFiles, toggleFileSelection, setAddToAlbumOpen]
+  );
 
   // Get the title based on current view
   const getTitle = () => {
@@ -399,85 +473,82 @@ export default function GalleryContent() {
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedFiles.map((file) => (
-                    <FileContextMenu
+                    <TableRow
                       key={file.id}
-                      file={file}
-                      onAddToAlbum={() => handleAddToAlbum(file)}
-                      onViewDetails={() => handleViewDetails(file)}
+                      className="hover:bg-muted/50 group transition-colors"
+                      data-state={
+                        selectedFiles.has(file.id) ? "selected" : "unselected"
+                      }
+                      onClick={() =>
+                        handleSelectFile(file.id, !selectedFiles.has(file.id))
+                      }
+                      onDoubleClick={() => handleFileDoubleClick(file)}
+                      onContextMenu={(e) => handleFileRightClick(e, file)}
                     >
-                      <TableRow
-                        className="hover:bg-muted/50 group transition-colors"
-                        data-state={
-                          selectedFiles.has(file.id) ? "selected" : "unselected"
-                        }
-                        onClick={() =>
-                          handleSelectFile(file.id, !selectedFiles.has(file.id))
-                        }
-                        onDoubleClick={() => handleFileDoubleClick(file)}
+                      <TableCell
+                        className="px-2"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <TableCell
-                          className="px-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Checkbox
-                            checked={selectedFiles.has(file.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelectFile(file.id, Boolean(checked))
-                            }
-                            aria-label={`Select file ${file.name}`}
-                          />
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4">
-                          <FileDisplayIcon
-                            type={file.type}
-                            className="text-muted-foreground group-hover:text-primary transition-colors"
-                          />
-                        </TableCell>
-                        <TableCell
-                          className="font-medium text-foreground truncate max-w-[150px] sm:max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl"
-                          title={file.name}
-                        >
-                          <div className="flex items-center">
-                            <span className="truncate">{file.name}</span>
-                            {file.isFavorite && (
-                              <span className="ml-2 text-amber-500">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  fill="currentColor"
-                                  className="w-4 h-4"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell text-muted-foreground">
-                          {file.size}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-muted-foreground">
-                          {sortBy === "dateCreated"
-                            ? formatDate(file.dateCreated)
-                            : sortBy === "dateTaken"
-                            ? formatDate(file.dateTaken)
-                            : formatDate(file.lastModified)}
-                        </TableCell>
-                        <TableCell
-                          className="text-right px-2 sm:px-4"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <FileActions
-                            file={file}
-                            onDelete={() => handleDeleteFile(file.id)}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    </FileContextMenu>
+                        <Checkbox
+                          checked={selectedFiles.has(file.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectFile(file.id, Boolean(checked))
+                          }
+                          aria-label={`Select file ${file.name}`}
+                        />
+                      </TableCell>
+                      <TableCell className="px-2 sm:px-4">
+                        <FileDisplayIcon
+                          type={file.type}
+                          className="text-muted-foreground group-hover:text-primary transition-colors"
+                        />
+                      </TableCell>
+                      <TableCell
+                        className="font-medium text-foreground truncate max-w-[150px] sm:max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl"
+                        title={file.name}
+                      >
+                        <div className="flex items-center">
+                          <span className="truncate">{file.name}</span>
+                          {file.isFavorite && (
+                            <span className="ml-2 text-amber-500">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="w-4 h-4"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-muted-foreground">
+                        {file.size}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                        {sortBy === "dateCreated"
+                          ? formatDate(file.dateCreated)
+                          : sortBy === "dateTaken"
+                          ? formatDate(file.dateTaken)
+                          : formatDate(file.lastModified)}
+                      </TableCell>
+                      <TableCell
+                        className="text-right px-2 sm:px-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <FileActions
+                          file={file}
+                          onDelete={() => handleDeleteFile(file.id)}
+                          onAddToAlbum={handleAddToAlbum}
+                          onViewDetails={handleViewDetails}
+                        />
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -489,25 +560,160 @@ export default function GalleryContent() {
               } transition-all duration-300 ease-in-out`}
             >
               {filteredAndSortedFiles.map((file) => (
-                <FileContextMenu
+                <FileCard
                   key={file.id}
                   file={file}
-                  onAddToAlbum={() => handleAddToAlbum(file)}
-                  onViewDetails={() => handleViewDetails(file)}
-                >
-                  <FileCard
-                    file={file}
-                    isSelected={selectedFiles.has(file.id)}
-                    onSelect={handleSelectFile}
-                    onDelete={() => handleDeleteFile(file.id)}
-                    onDoubleClick={handleFileDoubleClick}
-                    onRightClick={handleFileRightClick}
-                    viewMode={viewMode}
-                  />
-                </FileContextMenu>
+                  isSelected={selectedFiles.has(file.id)}
+                  onSelect={handleSelectFile}
+                  onDelete={() => handleDeleteFile(file.id)}
+                  onDoubleClick={handleFileDoubleClick}
+                  onRightClick={handleFileRightClick}
+                  viewMode={viewMode}
+                  onDragStart={handleFileDragStart}
+                  onAddToAlbum={handleAddToAlbum}
+                  onViewDetails={handleViewDetails}
+                />
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Custom Context Menu */}
+      {contextMenuPosition && contextMenuFile && (
+        <div
+          className="fixed z-50 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden border border-border"
+          style={{
+            top: `${contextMenuPosition.y}px`,
+            left: `${contextMenuPosition.x}px`,
+            width: "200px",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="py-1">
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                toggleFavoriteMutation.mutate({
+                  fileId: contextMenuFile.id,
+                  isFavorite: !contextMenuFile.isFavorite,
+                });
+                setContextMenuPosition(null);
+              }}
+            >
+              <span
+                className={`mr-2 ${
+                  contextMenuFile.isFavorite ? "text-amber-500" : ""
+                }`}
+              >
+                {contextMenuFile.isFavorite ? "★" : "☆"}
+              </span>
+              {contextMenuFile.isFavorite
+                ? "Remove from Favorites"
+                : "Add to Favorites"}
+            </button>
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                handleAddToAlbum(contextMenuFile);
+              }}
+            >
+              <span className="mr-2">📁</span>
+              Add to Album
+            </button>
+
+            <hr className="my-1 border-border" />
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                if (contextMenuFile.url) {
+                  const link = document.createElement("a");
+                  link.href = contextMenuFile.url;
+                  link.download = contextMenuFile.name;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  toast.success("Download started", {
+                    description: contextMenuFile.name,
+                  });
+                }
+                setContextMenuPosition(null);
+              }}
+            >
+              <span className="mr-2">⬇️</span>
+              Download
+            </button>
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                if (contextMenuFile.url) {
+                  navigator.clipboard.writeText(contextMenuFile.url);
+                  toast.success("Link copied to clipboard");
+                }
+                setContextMenuPosition(null);
+              }}
+            >
+              <span className="mr-2">🔗</span>
+              Copy Link
+            </button>
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                // Share logic
+                setContextMenuPosition(null);
+              }}
+            >
+              <span className="mr-2">🔄</span>
+              Share
+            </button>
+
+            <hr className="my-1 border-border" />
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                handleViewDetails(contextMenuFile);
+              }}
+            >
+              <span className="mr-2">ℹ️</span>
+              View Details
+            </button>
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+              onClick={() => {
+                handleViewDetails(contextMenuFile);
+              }}
+            >
+              <span className="mr-2">✏️</span>
+              Edit Description
+            </button>
+
+            <hr className="my-1 border-border" />
+
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+              onClick={() => {
+                toast.error(`Delete "${contextMenuFile.name}"?`, {
+                  description: "This action cannot be undone.",
+                  action: {
+                    label: "Confirm Delete",
+                    onClick: () => {
+                      deleteFileMutation.mutate(contextMenuFile.id);
+                    },
+                  },
+                });
+                setContextMenuPosition(null);
+              }}
+            >
+              <span className="mr-2">🗑️</span>
+              Delete
+            </button>
+          </div>
         </div>
       )}
 
@@ -518,12 +724,12 @@ export default function GalleryContent() {
       />
 
       {/* File Preview Modal */}
-      {/* <FilePreviewModal
+      <FilePreviewModal
         isOpen={!!previewFile}
         onClose={() => setPreviewFile(null)}
         initialFile={previewFile!}
         files={filteredAndSortedFiles}
-      /> */}
+      />
 
       {/* File Details Dialog */}
       <FileDetailsDialog
@@ -538,6 +744,20 @@ export default function GalleryContent() {
         onClose={() => setAddToAlbumOpen(false)}
         files={selectedFilesObjects}
       />
+
+      {/* Drag Indicator */}
+      <AnimatePresence>
+        {document.body.classList.contains("dragging-file") && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-full shadow-lg z-50"
+          >
+            Drag to an album or favorites to add
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

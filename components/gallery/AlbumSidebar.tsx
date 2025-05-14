@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,15 +42,20 @@ import {
   useCreateAlbum,
   useUpdateAlbum,
   useDeleteAlbum,
+  useAddFilesToAlbum,
 } from "@/lib/hooks/useAlbums";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { useToggleFavorite } from "@/lib/hooks/useFiles";
+import { cn } from "@/lib/utils";
 
 export default function AlbumSidebar() {
   const [newAlbumName, setNewAlbumName] = useState("");
   const [isCreateAlbumOpen, setIsCreateAlbumOpen] = useState(false);
   const [editingAlbumId, setEditingAlbumId] = useState<string | null>(null);
   const [renamingAlbumName, setRenamingAlbumName] = useState("");
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  const [isDropTargetFavorites, setIsDropTargetFavorites] = useState(false);
 
   // Album store
   const {
@@ -72,6 +79,8 @@ export default function AlbumSidebar() {
   const createAlbumMutation = useCreateAlbum();
   const updateAlbumMutation = useUpdateAlbum();
   const deleteAlbumMutation = useDeleteAlbum();
+  const toggleFavoriteMutation = useToggleFavorite();
+  const addFilesToAlbumMutation = useAddFilesToAlbum();
 
   // Determine if we're loading
   const isLoading = storeLoading || queryLoading;
@@ -152,6 +161,74 @@ export default function AlbumSidebar() {
     });
   };
 
+  const handleDragOver = (
+    e: React.DragEvent<HTMLDivElement>,
+    id: string | "favorites"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (id === "favorites") {
+      setIsDropTargetFavorites(true);
+      setDropTargetId(null);
+    } else {
+      setDropTargetId(id);
+      setIsDropTargetFavorites(false);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDropTargetId(null);
+    setIsDropTargetFavorites(false);
+  };
+
+  const handleDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    id: string | "favorites"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+
+      if (data.type === "file") {
+        if (id === "favorites") {
+          // Add to favorites
+          toggleFavoriteMutation.mutate(
+            {
+              fileId: data.id,
+              isFavorite: true,
+            },
+            {
+              onSuccess: () => {
+                toast.success(`Added "${data.name}" to favorites`);
+              },
+            }
+          );
+        } else {
+          // Add to album
+          addFilesToAlbumMutation.mutate(
+            {
+              albumId: id,
+              fileIds: [data.id],
+            },
+            {
+              onSuccess: () => {
+                toast.success(`Added "${data.name}" to album`);
+              },
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error processing drop:", error);
+    }
+
+    setDropTargetId(null);
+    setIsDropTargetFavorites(false);
+  };
+
   return (
     <div className="h-full flex flex-col">
       <ScrollArea className="flex-1">
@@ -171,15 +248,30 @@ export default function AlbumSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="Favorite Files"
+              asChild
               isActive={currentView === "favorites"}
-              onClick={() => {
-                setCurrentAlbum(null);
-                setCurrentView("favorites");
-              }}
+              className={cn(
+                isDropTargetFavorites &&
+                  "bg-amber-100 dark:bg-amber-900/30 ring-2 ring-amber-500"
+              )}
+              onDragOver={(e) => handleDragOver(e, "favorites")}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, "favorites")}
             >
-              <Heart className="h-5 w-5" />
-              <span>Favorites</span>
+              <button
+                onClick={() => {
+                  setCurrentView("favorites");
+                  setCurrentAlbum(null);
+                }}
+              >
+                <Heart
+                  className={cn(
+                    "text-amber-500",
+                    currentView === "favorites" && "fill-amber-500"
+                  )}
+                />
+                <span>Favorites</span>
+              </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
@@ -258,63 +350,66 @@ export default function AlbumSidebar() {
               ) : (
                 <AnimatePresence>
                   {albums.map((album) => (
-                    <motion.div
-                      key={album.id}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <SidebarMenuItem className="group/album-item relative">
-                        <SidebarMenuButton
-                          tooltip={album.name}
-                          size="sm"
-                          isActive={
-                            currentAlbumId === album.id &&
-                            currentView === "album"
-                          }
+                    <SidebarMenuItem key={album.id}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={
+                          currentView === "album" && currentAlbumId === album.id
+                        }
+                        className={cn(
+                          dropTargetId === album.id &&
+                            "bg-primary/10 ring-2 ring-primary"
+                        )}
+                        onDragOver={(e) => handleDragOver(e, album.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, album.id)}
+                      >
+                        <button
                           onClick={() => {
-                            setCurrentAlbum(album.id);
                             setCurrentView("album");
+                            setCurrentAlbum(album.id);
                           }}
                         >
-                          <Folder className="h-5 w-5" />
-                          <span className="flex-1 truncate">{album.name}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {album.itemCount || 0}
-                          </span>
-                        </SidebarMenuButton>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/album-item:opacity-100 focus:opacity-100 group-data-[collapsible=icon]:hidden"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingAlbumId(album.id);
-                                setRenamingAlbumName(album.name);
-                              }}
-                            >
-                              Rename
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleDeleteAlbum(album.id, album.name)
-                              }
-                              className="text-destructive focus:text-destructive"
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </SidebarMenuItem>
-                    </motion.div>
+                          <Folder
+                            className={cn(
+                              currentView === "album" &&
+                                currentAlbumId === album.id &&
+                                "fill-primary/20"
+                            )}
+                          />
+                          <span>{album.name}</span>
+                        </button>
+                      </SidebarMenuButton>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/album-item:opacity-100 focus:opacity-100 group-data-[collapsible=icon]:hidden"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingAlbumId(album.id);
+                              setRenamingAlbumName(album.name);
+                            }}
+                          >
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleDeleteAlbum(album.id, album.name)
+                            }
+                            className="text-destructive focus:text-destructive"
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </SidebarMenuItem>
                   ))}
                 </AnimatePresence>
               )}

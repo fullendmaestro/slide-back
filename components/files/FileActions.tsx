@@ -1,5 +1,16 @@
 "use client";
-import { Button } from "@/components/ui/button";
+
+import {
+  MoreHorizontal,
+  Star,
+  FolderPlus,
+  Download,
+  Link,
+  Share2,
+  FileEdit,
+  Trash2,
+  Info,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,103 +18,153 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner"; // Updated to use sonner
-import { MoreHorizontal, Download, Trash2, Edit3, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { File } from "@/lib/db/schema";
+import { useToggleFavorite } from "@/lib/hooks/useFiles";
+import { toast } from "sonner";
 
 interface FileActionsProps {
   file: File;
-  onDelete: (fileId: string) => void; // Callback to handle deletion in parent
-  className?: string;
+  onDelete: () => void;
+  onAddToAlbum: (file: File) => void;
+  onViewDetails: (file: File) => void;
 }
 
 export default function FileActions({
   file,
   onDelete,
-  className,
+  onAddToAlbum,
+  onViewDetails,
 }: FileActionsProps) {
-  const handleDownload = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click or other parent events
+  const toggleFavoriteMutation = useToggleFavorite();
+
+  const handleToggleFavorite = () => {
+    toggleFavoriteMutation.mutate({
+      fileId: file.id,
+      isFavorite: !file.isFavorite,
+    });
+
+    toast.success(
+      file.isFavorite ? "Removed from favorites" : "Added to favorites",
+      {
+        description: file.name,
+      }
+    );
+  };
+
+  const handleDownload = () => {
     if (file.url) {
-      toast.success(`Preparing to download ${file.name}`);
       const link = document.createElement("a");
       link.href = file.url;
       link.download = file.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success(`${file.name} download started.`);
+      toast.success("Download started", {
+        description: file.name,
+      });
     } else {
-      toast.error(
-        "Download not available. This file does not have a download link."
-      );
+      toast.error("Download failed", {
+        description: "File URL is not available",
+      });
     }
   };
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast.error(
-      `"${file.name}" will be deleted. This action cannot be undone.`,
-      {
-        action: {
-          label: "Confirm Delete",
-          onClick: () => {
-            onDelete(file.id);
-            toast.success(`"${file.name}" has been deleted.`);
-          },
-        },
-      }
-    );
+  const handleCopyLink = () => {
+    if (file.url) {
+      navigator.clipboard.writeText(file.url);
+      toast.success("Link copied to clipboard", {
+        description: file.name,
+      });
+    } else {
+      toast.error("Copy failed", {
+        description: "File URL is not available",
+      });
+    }
   };
 
-  const handleRename = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast.info(`Rename action for ${file.name} (not implemented)`);
+  const handleShare = () => {
+    if (navigator.share && file.url) {
+      navigator
+        .share({
+          title: file.name,
+          text: file.description || `Check out this ${file.type}`,
+          url: file.url,
+        })
+        .then(() => {
+          toast.success("Shared successfully");
+        })
+        .catch((error) => {
+          console.error("Error sharing:", error);
+          toast.error("Sharing failed", {
+            description: error.message,
+          });
+        });
+    } else {
+      handleCopyLink();
+    }
   };
 
-  const handleViewDetails = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast.info(`Details for ${file.name} (not implemented)`);
+  const handleViewDetails = () => {
+    // Use the callback to avoid infinite re-renders
+    onViewDetails(file);
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-7 w-7 text-white/80 hover:text-white hover:bg-black/30 ${className}`}
-          onClick={(e) => e.stopPropagation()} // Important to stop propagation
-        >
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
           <MoreHorizontal className="h-4 w-4" />
-          <span className="sr-only">More actions for {file.name}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 bg-popover text-popover-foreground"
-        onClick={(e) => e.stopPropagation()} // Stop propagation for content items too
-      >
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleToggleFavorite}>
+          <Star
+            className={`mr-2 h-4 w-4 ${
+              file.isFavorite ? "text-amber-500 fill-amber-500" : ""
+            }`}
+          />
+          {file.isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => onAddToAlbum(file)}>
+          <FolderPlus className="mr-2 h-4 w-4" />
+          Add to Album
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={handleDownload}>
+          <Download className="mr-2 h-4 w-4" />
+          Download
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleCopyLink}>
+          <Link className="mr-2 h-4 w-4" />
+          Copy Link
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleShare}>
+          <Share2 className="mr-2 h-4 w-4" />
+          Share
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
         <DropdownMenuItem onClick={handleViewDetails}>
           <Info className="mr-2 h-4 w-4" />
           View Details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleRename}>
-          <Edit3 className="mr-2 h-4 w-4" />
-          Rename
+
+        <DropdownMenuItem onClick={handleViewDetails}>
+          <FileEdit className="mr-2 h-4 w-4" />
+          Edit Description
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleDownload}
-          disabled={!file.url || file.type === "folder"}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Download
-        </DropdownMenuItem>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleDeleteClick}
-          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-        >
+
+        <DropdownMenuItem onClick={onDelete} className="text-red-600">
           <Trash2 className="mr-2 h-4 w-4" />
           Delete
         </DropdownMenuItem>

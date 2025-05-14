@@ -1,3 +1,32 @@
+/* Custom context menu styles */
+.custom-context-menu {
+  animation: fadeIn 0.15s ease-in-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.context-menu-item {
+  transition: background-color 0.15s ease;
+}
+
+.context-menu-item:hover {
+  background-color: rgba(var(--primary), 0.1);
+}
+
+.context-menu-item-danger:hover {
+  background-color: rgba(var(--destructive), 0.1);
+}
+
 .slide .slide-button {
   position: absolute;
   top: 43%;

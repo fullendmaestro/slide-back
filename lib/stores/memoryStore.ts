@@ -1,103 +1,157 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import type { File } from "@/lib/db/schema";
+import { devtools } from "@/lib/stores/devtools";
 
-interface MemoryState {
-  query: string;
-  dateRange: {
-    from: Date | null;
-    to: Date | null;
-  };
+export interface DateRange {
+  from?: Date;
+  to?: Date;
+}
+
+export interface MemoryState {
+  prompt: string;
+  dateRange: DateRange;
   albumId: string | null;
-  results: File[];
-  currentIndex: number;
+  mood: string;
+  musicEnabled: boolean;
+  captionsEnabled: boolean;
   isPlaying: boolean;
+  currentSlideIndex: number;
+  slides: any[];
   isLoading: boolean;
   error: string | null;
 
   // Actions
-  setQuery: (query: string) => void;
-  setDateRange: (from: Date | null, to: Date | null) => void;
+  setPrompt: (prompt: string) => void;
+  setDateRange: (dateRange: DateRange) => void;
   setAlbumId: (albumId: string | null) => void;
-  setResults: (results: File[]) => void;
-  setCurrentIndex: (index: number) => void;
+  setMood: (mood: string) => void;
+  setMusicEnabled: (enabled: boolean) => void;
+  setCaptionsEnabled: (enabled: boolean) => void;
+  setIsPlaying: (isPlaying: boolean) => void;
+  setCurrentSlideIndex: (index: number) => void;
   nextSlide: () => void;
   prevSlide: () => void;
-  togglePlayback: () => void;
-  setIsPlaying: (isPlaying: boolean) => void;
-  setLoading: (isLoading: boolean) => void;
+  setSlides: (slides: any[]) => void;
+  setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  reset: () => void;
+  resetMemory: () => void;
+  searchMemories: () => Promise<void>;
 }
 
 export const useMemoryStore = create<MemoryState>()(
-  devtools((set) => ({
-    query: "",
-    dateRange: {
-      from: null,
-      to: null,
-    },
-    albumId: null,
-    results: [],
-    currentIndex: 0,
-    isPlaying: false,
-    isLoading: false,
-    error: null,
+  devtools(
+    (set, get) => ({
+      prompt: "",
+      dateRange: {},
+      albumId: null,
+      mood: "nostalgic",
+      musicEnabled: true,
+      captionsEnabled: true,
+      isPlaying: false,
+      currentSlideIndex: 0,
+      slides: [],
+      isLoading: false,
+      error: null,
 
-    setQuery: (query) => set({ query }),
+      setPrompt: (prompt) => set({ prompt }),
+      setDateRange: (dateRange) => set({ dateRange }),
+      setAlbumId: (albumId) => set({ albumId }),
+      setMood: (mood) => set({ mood }),
+      setMusicEnabled: (enabled) => set({ musicEnabled: enabled }),
+      setCaptionsEnabled: (enabled) => set({ captionsEnabled: enabled }),
+      setIsPlaying: (isPlaying) => set({ isPlaying }),
+      setCurrentSlideIndex: (index) => set({ currentSlideIndex: index }),
+      nextSlide: () => {
+        const { currentSlideIndex, slides } = get();
+        if (currentSlideIndex < slides.length - 1) {
+          set({ currentSlideIndex: currentSlideIndex + 1 });
+        }
+      },
+      prevSlide: () => {
+        const { currentSlideIndex } = get();
+        if (currentSlideIndex > 0) {
+          set({ currentSlideIndex: currentSlideIndex - 1 });
+        }
+      },
+      setSlides: (slides) => set({ slides }),
+      setIsLoading: (isLoading) => set({ isLoading }),
+      setError: (error) => set({ error }),
+      resetMemory: () =>
+        set({
+          prompt: "",
+          dateRange: {},
+          albumId: null,
+          mood: "nostalgic",
+          musicEnabled: true,
+          captionsEnabled: true,
+          isPlaying: false,
+          currentSlideIndex: 0,
+          slides: [],
+          isLoading: false,
+          error: null,
+        }),
+      searchMemories: async () => {
+        const { prompt, dateRange, albumId } = get();
 
-    setDateRange: (from, to) =>
-      set({
-        dateRange: { from, to },
-      }),
+        if (!prompt) {
+          set({ error: "Please enter a memory prompt" });
+          return;
+        }
 
-    setAlbumId: (albumId) => set({ albumId }),
+        set({ isLoading: true, error: null });
 
-    setResults: (results) =>
-      set({
-        results,
-        currentIndex: 0,
-        isPlaying: results.length > 0,
-      }),
+        try {
+          const response = await fetch("/api/memory", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              query: prompt,
+              dateRange:
+                dateRange.from || dateRange.to
+                  ? {
+                      from: dateRange.from?.toISOString(),
+                      to: dateRange.to?.toISOString(),
+                    }
+                  : undefined,
+              albumId: albumId || undefined,
+            }),
+          });
 
-    setCurrentIndex: (index) => set({ currentIndex: index }),
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to search memories");
+          }
 
-    nextSlide: () =>
-      set((state) => ({
-        currentIndex:
-          (state.currentIndex + 1) % Math.max(1, state.results.length),
-      })),
+          const data = await response.json();
 
-    prevSlide: () =>
-      set((state) => ({
-        currentIndex:
-          (state.currentIndex - 1 + state.results.length) %
-          state.results.length,
-      })),
+          if (data.results.length === 0) {
+            set({
+              error: "No memories found matching your criteria",
+              isLoading: false,
+              slides: [],
+            });
+            return;
+          }
 
-    togglePlayback: () =>
-      set((state) => ({
-        isPlaying: !state.isPlaying,
-      })),
-
-    setIsPlaying: (isPlaying) => set({ isPlaying }),
-
-    setLoading: (isLoading) => set({ isLoading }),
-
-    setError: (error) => set({ error }),
-
-    reset: () =>
-      set({
-        query: "",
-        dateRange: {
-          from: null,
-          to: null,
-        },
-        albumId: null,
-        results: [],
-        currentIndex: 0,
-        isPlaying: false,
-        error: null,
-      }),
-  }))
+          set({
+            slides: data.results,
+            isLoading: false,
+            isPlaying: true,
+            currentSlideIndex: 0,
+          });
+        } catch (error) {
+          console.error("Error searching memories:", error);
+          set({
+            error:
+              error instanceof Error
+                ? error.message
+                : "An unknown error occurred",
+            isLoading: false,
+          });
+        }
+      },
+    }),
+    { name: "Memory Store" }
+  )
 );

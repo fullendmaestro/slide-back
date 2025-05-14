@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { File } from "@/lib/db/schema";
+import { devtools } from "@/lib/stores/devtools";
 
 interface FileState {
   files: File[];
@@ -108,7 +109,7 @@ export const useFileStore = create<FileState>()(
         viewMode: state.viewMode,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
-      }), // Only persist these properties
+      }),
     }
   )
 );

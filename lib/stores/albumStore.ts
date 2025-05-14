@@ -1,12 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Album as DbAlbum } from "@/lib/db/schema";
+import type { Album } from "@/lib/db/schema";
+import { devtools } from "@/lib/stores/devtools";
 
 type AlbumView = "all" | "album" | "favorites";
-
-interface Album extends DbAlbum {
-  itemCount: number;
-}
 
 interface AlbumState {
   // Album data
@@ -78,7 +75,6 @@ export const useAlbumStore = create<AlbumState>()(
     {
       name: "slide-back-album-store",
       partialize: (state) => ({
-        // Only persist these values
         currentAlbumId: state.currentAlbumId,
         currentView: state.currentView,
       }),

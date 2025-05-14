@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -31,21 +31,21 @@ export default function FileDetailsDialog({
   isOpen,
   onClose,
 }: FileDetailsDialogProps) {
-  const [name, setName] = useState(file?.name || "");
-  const [description, setDescription] = useState(file?.description || "");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
   const updateFileMutation = useUpdateFile();
   const updateDescriptionMutation = useUpdateFileDescription();
 
   // Update local state when file changes
-  if (file && file.name !== name && !isEditing) {
-    setName(file.name);
-  }
-
-  if (file && file.description !== description && !isEditing) {
-    setDescription(file.description || "");
-  }
+  useEffect(() => {
+    if (file) {
+      setName(file.name || "");
+      setDescription(file.description || "");
+      setIsEditing(false);
+    }
+  }, [file]);
 
   const handleSave = async () => {
     if (!file) return;
@@ -56,7 +56,10 @@ export default function FileDetailsDialog({
       // Update file name if changed
       if (name !== file.name) {
         await updateFileMutation.mutateAsync({
-          updates: { id: file.id, name },
+          updates: {
+            id: file.id,
+            name,
+          },
         });
       }
 
@@ -80,15 +83,14 @@ export default function FileDetailsDialog({
 
   if (!file) return null;
 
-  const formatDate = (date?: Date | string) => {
-    if (!date) return "N/A";
+  const formatDate = (dateInput?: string | Date) => {
+    if (!dateInput) return "N/A";
     try {
-      return format(
-        typeof date === "string" ? new Date(date) : date,
-        "PPP 'at' p"
-      );
+      const dateObj =
+        typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+      return format(dateObj, "PPP 'at' p");
     } catch (error) {
-      return date instanceof Date ? date.toISOString() : date;
+      return dateInput?.toString?.() ?? "N/A";
     }
   };
 

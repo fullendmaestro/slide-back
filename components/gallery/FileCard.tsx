@@ -18,6 +18,9 @@ interface FileCardProps {
   onDoubleClick: (file: File) => void;
   onRightClick: (e: React.MouseEvent, file: File) => void;
   viewMode: "grid-sm" | "grid-md" | "grid-lg";
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>, file: File) => void;
+  onAddToAlbum?: (file: File) => void;
+  onViewDetails?: (file: File) => void;
 }
 
 export default function FileCard({
@@ -28,8 +31,12 @@ export default function FileCard({
   onDoubleClick,
   onRightClick,
   viewMode,
+  onDragStart,
+  onAddToAlbum,
+  onViewDetails,
 }: FileCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const isImageFile = file.type === "image" && file.url;
 
   const cardSizeClasses = {
@@ -44,16 +51,54 @@ export default function FileCard({
     "grid-lg": "h-20 w-20",
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    // Set data for the drag operation
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({
+        type: "file",
+        id: file.id,
+        name: file.name,
+      })
+    );
+
+    // Create a custom drag image if it's an image file
+    if (isImageFile && file.url && typeof window !== "undefined") {
+      const img = new window.Image();
+      img.src = file.url;
+      img.width = 100;
+      img.height = 100;
+      e.dataTransfer.setDragImage(img, 50, 50);
+    }
+
+    setIsDragging(true);
+    if (onDragStart) onDragStart(e, file);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Handle right-click event
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default browser context menu
+    e.stopPropagation(); // Stop event propagation
+    if (onRightClick) {
+      onRightClick(e, file);
+    }
+  };
+
   return (
     <motion.div
       className={cn(
         "relative group rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 ease-in-out hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 w-full",
         isSelected && "ring-2 ring-primary ring-offset-2",
+        isDragging && "opacity-50 scale-95",
         cardSizeClasses[viewMode]
       )}
       onClick={() => onSelect(file.id, !isSelected)}
       onDoubleClick={() => onDoubleClick(file)}
-      onContextMenu={(e) => onRightClick(e, file)}
+      onContextMenu={handleContextMenu}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       tabIndex={0}
@@ -62,6 +107,8 @@ export default function FileCard({
       aria-label={`Select file ${file.name}`}
       whileHover={{ scale: 1.02 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      draggable
+      onDragEnd={handleDragEnd}
     >
       {isImageFile ? (
         <div className="w-full h-full relative">
@@ -71,7 +118,7 @@ export default function FileCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            data-ai-hint="gallery image"
+            data-ai-hint={"gallery image"}
           />
         </div>
       ) : (
@@ -119,7 +166,12 @@ export default function FileCard({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <FileActions file={file} onDelete={() => onDelete(file.id)} />
+        <FileActions
+          file={file}
+          onDelete={() => onDelete(file.id)}
+          onAddToAlbum={onAddToAlbum || (() => {})}
+          onViewDetails={onViewDetails || (() => {})}
+        />
       </div>
 
       {/* Favorite indicator if file is favorited */}
