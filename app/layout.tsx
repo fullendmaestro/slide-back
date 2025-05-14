@@ -5,7 +5,6 @@ import { SessionProvider } from "next-auth/react";
 
 import { QueryProvider } from "@/lib/providers/QueryProvider";
 import "./globals.css";
-import "./styles.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { Toaster } from "sonner";
 

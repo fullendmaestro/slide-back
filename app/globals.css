@@ -252,3 +252,59 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Context menu styles */
+  .context-menu-active {
+    position: relative;
+    z-index: 50;
+  }
+
+  /* Drag and drop styles */
+  .dragging-file {
+    cursor: grabbing !important;
+  }
+
+  .drop-target {
+    @apply ring-2 ring-primary bg-primary/10 transition-all duration-200;
+    animation: pulse-border 1.5s ease-in-out infinite;
+  }
+
+  .drop-target-favorites {
+    @apply ring-2 ring-amber-500 bg-amber-100 dark:bg-amber-900/30 transition-all duration-200;
+    animation: pulse-border 1.5s ease-in-out infinite;
+  }
+
+  .drop-target-highlight {
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Fix for context menu positioning */
+  [data-radix-popper-content-wrapper] {
+    z-index: 9999 !important;
+  }
+}
+
+@layer utilities {
+  @keyframes pulse-border {
+    0%,
+    100% {
+      --tw-ring-opacity: 0.7;
+    }
+    50% {
+      --tw-ring-opacity: 1;
+    }
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(var(--primary), 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(var(--primary), 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--primary), 0);
+    }
+  }
+}
