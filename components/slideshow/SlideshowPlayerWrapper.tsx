@@ -12,10 +12,10 @@ interface SlideshowPlayerWrapperProps {
 export default function SlideshowPlayerWrapper({
   onExit,
 }: SlideshowPlayerWrapperProps) {
-  const results = useMemoryStore((state) => state.results);
+  const results = useMemoryStore((state) => state.slides);
   const isLoading = useMemoryStore((state) => state.isLoading);
   const error = useMemoryStore((state) => state.error);
-  const reset = useMemoryStore((state) => state.reset);
+  const reset = useMemoryStore((state) => state.resetMemory);
 
   const handleExit = () => {
     reset(); // Reset the memory store
