@@ -43,7 +43,7 @@ export default function MemoryWizardForm({
   const { data: albums } = useAlbums();
 
   // Memory store actions
-  const setQuery = useMemoryStore((state) => state.setQuery);
+  const setQuery = useMemoryStore((state) => state.setPrompt);
   const setDateRange = useMemoryStore((state) => state.setDateRange);
   const setAlbumId = useMemoryStore((state) => state.setAlbumId);
 
@@ -68,7 +68,10 @@ export default function MemoryWizardForm({
 
     // Set the search parameters in the memory store
     setQuery(data.prompt);
-    setDateRange(data.dateRange.from || null, data.dateRange.to || null);
+    setDateRange({
+      from: data.dateRange.from || undefined,
+      to: data.dateRange.to || undefined,
+    });
     setAlbumId(data.album || null);
 
     // Trigger the search

@@ -13,6 +13,7 @@ import AlbumSidebar from "@/components/gallery/AlbumSidebar";
 import GalleryContent from "@/components/gallery/GalleryContent";
 import { Button } from "../ui/button";
 import { Settings, UserCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function GalleryPageLayout() {
   return (
@@ -23,9 +24,11 @@ export default function GalleryPageLayout() {
         className="border-r border-sidebar-border"
       >
         <SidebarHeader className="p-4 items-center flex justify-between">
-          <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-            Slide Back
-          </h2>
+          <Link href="/">
+            <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+              Slide Back
+            </h2>
+          </Link>
           {/* <SidebarTrigger className="group-data-[collapsible=icon]:hidden" /> */}
         </SidebarHeader>
         <SidebarContent className="p-0">
