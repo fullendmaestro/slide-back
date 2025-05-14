@@ -4,11 +4,11 @@ import { useMemoryStore } from "@/lib/stores/memoryStore";
 
 // Search for memories
 export function useMemorySearch() {
-  const query = useMemoryStore((state) => state.query);
+  const query = useMemoryStore((state) => state.prompt);
   const dateRange = useMemoryStore((state) => state.dateRange);
   const albumId = useMemoryStore((state) => state.albumId);
-  const setResults = useMemoryStore((state) => state.setResults);
-  const setLoading = useMemoryStore((state) => state.setLoading);
+  // const setResults = useMemoryStore((state) => state.setResults);
+  // const setLoading = useMemoryStore((state) => state.setLoading);
   const setError = useMemoryStore((state) => state.setError);
 
   return useQuery({
@@ -18,7 +18,7 @@ export function useMemorySearch() {
         return [];
       }
 
-      setLoading(true);
+      // setLoading(true);
       try {
         let url = `/api/memory?query=${encodeURIComponent(query)}`;
 
@@ -41,7 +41,7 @@ export function useMemorySearch() {
         }
 
         const data = await response.json();
-        setResults(data);
+        // setResults(data);
         return data;
       } catch (error) {
         setError(
@@ -52,7 +52,7 @@ export function useMemorySearch() {
         );
         throw error;
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     },
     enabled: !!query,
