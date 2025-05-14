@@ -162,7 +162,7 @@ export default function AlbumSidebar() {
   };
 
   const handleDragOver = (
-    e: React.DragEvent<HTMLDivElement>,
+    e: React.DragEvent<HTMLElement>,
     id: string | "favorites"
   ) => {
     e.preventDefault();
@@ -177,13 +177,13 @@ export default function AlbumSidebar() {
     }
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent<HTMLElement>) => {
     setDropTargetId(null);
     setIsDropTargetFavorites(false);
   };
 
   const handleDrop = (
-    e: React.DragEvent<HTMLDivElement>,
+    e: React.DragEvent<HTMLElement>,
     id: string | "favorites"
   ) => {
     e.preventDefault();
@@ -254,15 +254,15 @@ export default function AlbumSidebar() {
                 isDropTargetFavorites &&
                   "bg-amber-100 dark:bg-amber-900/30 ring-2 ring-amber-500"
               )}
-              onDragOver={(e) => handleDragOver(e, "favorites")}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, "favorites")}
             >
               <button
                 onClick={() => {
                   setCurrentView("favorites");
                   setCurrentAlbum(null);
                 }}
+                onDragOver={(e) => handleDragOver(e, "favorites")}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, "favorites")}
               >
                 <Heart
                   className={cn(
