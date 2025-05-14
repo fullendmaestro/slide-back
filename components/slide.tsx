@@ -32,7 +32,7 @@ export function ResponsiveCarousel() {
 
   return (
     <div style={{ width: "100%", position: "relative" }}>
-      <ResponsiveContainer
+      {/* <ResponsiveContainer
         carouselRef={ref as React.MutableRefObject<StackedCarousel | undefined>}
         render={(width, carouselRef) => {
           return (
@@ -79,34 +79,34 @@ export function ResponsiveCarousel() {
         }}
       >
         <ChevronRight size={30} />
-      </button>
+      </button> */}
     </div>
   );
 }
 
-const Slide = React.memo(function (props: StackedCarouselSlideProps) {
-  const { data, dataIndex, isCenterSlide, swipeTo, slideIndex } = props;
+// const Slide = React.memo(function (props: StackedCarouselSlideProps) {
+//   const { data, dataIndex, isCenterSlide, swipeTo, slideIndex } = props;
 
-  const { image } = data[dataIndex];
+//   const { image } = data[dataIndex];
 
-  return (
-    <div className="slide-card" draggable={false}>
-      <div className="cover fill">
-        <div
-          className="card-overlay fill"
-          onClick={() => {
-            if (!isCenterSlide) swipeTo(slideIndex);
-          }}
-        />
-        <Image
-          className="cover-image fill"
-          src={image}
-          alt={`Memory ${dataIndex + 1}`}
-        />
-      </div>
-    </div>
-  );
-});
+//   return (
+//     <div className="slide-card" draggable={false}>
+//       <div className="cover fill">
+//         <div
+//           className="card-overlay fill"
+//           onClick={() => {
+//             if (!isCenterSlide) swipeTo(slideIndex);
+//           }}
+//         />
+//         <Image
+//           className="cover-image fill"
+//           src={image}
+//           alt={`Memory ${dataIndex + 1}`}
+//         />
+//       </div>
+//     </div>
+//   );
+// });
 
-// Add displayName for debugging
-Slide.displayName = "Slide";
+// // Add displayName for debugging
+// Slide.displayName = "Slide";
