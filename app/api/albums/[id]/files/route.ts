@@ -4,10 +4,8 @@ import { db } from "@/lib/db";
 import { albumFile } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await auth();
 
@@ -35,7 +33,7 @@ export async function GET(
     // Extract the files from the albumFiles
     const files = albumFiles
       .map((af) => af.file)
-      .filter((f) => f.userId === session.user.id);
+      .filter((f) => f.userId === session?.user?.id);
 
     return NextResponse.json(files);
   } catch (error) {

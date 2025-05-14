@@ -4,10 +4,8 @@ import { db } from "@/lib/db";
 import { file } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const session = await auth();
 
