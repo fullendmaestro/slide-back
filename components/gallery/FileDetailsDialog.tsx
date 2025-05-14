@@ -41,8 +41,9 @@ export default function FileDetailsDialog({
   // Update local state when file changes
   useEffect(() => {
     if (file) {
+      console.log("File details:", file);
       setName(file.name || "");
-      setDescription(file.description || "");
+      setDescription(file.aiDescription || "");
       setIsEditing(false);
     }
   }, [file]);
@@ -96,7 +97,7 @@ export default function FileDetailsDialog({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto">
+      <SheetContent className="sm:max-w-md md:max-w-lg overflow-y-auto px-2">
         <SheetHeader>
           <SheetTitle>File Details</SheetTitle>
           <SheetDescription>
