@@ -108,16 +108,6 @@ export default function GalleryToolbar({
   const currentViewType = viewMode.startsWith("grid") ? "square" : "river";
   const currentGridSize = viewMode.startsWith("grid") ? viewMode : undefined;
 
-  // Determine which controls to show in the main toolbar vs. overflow menu
-  const showInToolbar = {
-    selectAll: selectedFileCount === 0 && window.innerWidth > 640,
-    slideshow: selectedFileCount === 0 && window.innerWidth > 768,
-    upload: selectedFileCount === 0 && window.innerWidth > 768,
-    sort: selectedFileCount === 0 && window.innerWidth > 1024,
-    filter: selectedFileCount === 0 && window.innerWidth > 1024,
-    view: selectedFileCount === 0 && window.innerWidth > 640,
-  };
-
   return (
     <div className="p-4 border-b border-border space-y-4 bg-card sticky top-0 z-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -172,174 +162,155 @@ export default function GalleryToolbar({
         ) : (
           // Normal toolbar
           <>
-            {showInToolbar.selectAll && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="select-all"
-                  checked={isAllSelected && totalMediaFiles > 0}
-                  onCheckedChange={(checked) => onSelectAll(Boolean(checked))}
-                  disabled={totalMediaFiles === 0}
-                />
-                <Label
-                  htmlFor="select-all"
-                  className="text-sm whitespace-nowrap"
-                >
-                  Select All
-                </Label>
-              </div>
-            )}
-
-            {showInToolbar.slideshow && (
-              <Button
-                variant="ghost"
-                size="sm"
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="select-all"
+                checked={isAllSelected && totalMediaFiles > 0}
+                onCheckedChange={(checked) => onSelectAll(Boolean(checked))}
                 disabled={totalMediaFiles === 0}
-              >
-                <Play className="mr-2 h-4 w-4" /> Slideshow
-              </Button>
-            )}
+              />
+              <Label htmlFor="select-all" className="text-sm whitespace-nowrap">
+                Select All
+              </Label>
+            </div>
 
-            {showInToolbar.upload && (
-              <Button variant="ghost" size="sm" onClick={onUploadClick}>
-                <Upload className="mr-2 h-4 w-4" /> Upload
-              </Button>
-            )}
+            <Button variant="ghost" size="sm" disabled={totalMediaFiles === 0}>
+              <Play className="mr-2 h-4 w-4" /> Slideshow
+            </Button>
 
-            {showInToolbar.sort && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <ArrowUpDown className="mr-2 h-4 w-4" /> Sort
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={sortBy}
-                    onValueChange={(newSortBy) =>
-                      onSortChange(newSortBy as SortByType, sortOrder)
-                    }
-                  >
-                    {sortByOptions.map((option) => (
-                      <DropdownMenuRadioItem
-                        key={option.value}
-                        value={option.value}
-                        className="gap-2 cursor-pointer"
-                      >
-                        <option.icon className="h-4 w-4 text-muted-foreground" />
-                        <span>{option.label}</span>
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Order</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={sortOrder}
-                    onValueChange={(newSortOrder) =>
-                      onSortChange(sortBy, newSortOrder as SortOrderType)
-                    }
-                  >
+            <Button variant="ghost" size="sm" onClick={onUploadClick}>
+              <Upload className="mr-2 h-4 w-4" /> Upload
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <ArrowUpDown className="mr-2 h-4 w-4" /> Sort
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={sortBy}
+                  onValueChange={(newSortBy) =>
+                    onSortChange(newSortBy as SortByType, sortOrder)
+                  }
+                >
+                  {sortByOptions.map((option) => (
                     <DropdownMenuRadioItem
-                      value="asc"
+                      key={option.value}
+                      value={option.value}
                       className="gap-2 cursor-pointer"
                     >
-                      <ArrowUp className="h-4 w-4 text-muted-foreground" />
-                      <span>Ascending</span>
+                      <option.icon className="h-4 w-4 text-muted-foreground" />
+                      <span>{option.label}</span>
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      value="desc"
-                      className="gap-2 cursor-pointer"
-                    >
-                      <ArrowDown className="h-4 w-4 text-muted-foreground" />
-                      <span>Descending</span>
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                  ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Order</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={sortOrder}
+                  onValueChange={(newSortOrder) =>
+                    onSortChange(sortBy, newSortOrder as SortOrderType)
+                  }
+                >
+                  <DropdownMenuRadioItem
+                    value="asc"
+                    className="gap-2 cursor-pointer"
+                  >
+                    <ArrowUp className="h-4 w-4 text-muted-foreground" />
+                    <span>Ascending</span>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    value="desc"
+                    className="gap-2 cursor-pointer"
+                  >
+                    <ArrowDown className="h-4 w-4 text-muted-foreground" />
+                    <span>Descending</span>
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            {showInToolbar.filter && (
-              <Button variant="ghost" size="sm">
-                <Filter className="mr-2 h-4 w-4" /> Filter
-              </Button>
-            )}
+            <Button variant="ghost" size="sm">
+              <Filter className="mr-2 h-4 w-4" /> Filter
+            </Button>
 
-            {showInToolbar.view && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="ml-auto sm:ml-0">
-                    {viewMode === "list" ? (
-                      <List className="mr-2 h-4 w-4" />
-                    ) : (
-                      <LayoutGrid className="mr-2 h-4 w-4" />
-                    )}
-                    View
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuRadioGroup
-                    value={currentViewType}
-                    onValueChange={(value) => {
-                      if (value === "river") {
-                        onViewModeChange("list");
-                      } else if (value === "square") {
-                        if (viewMode === "list") {
-                          onViewModeChange("grid-md");
-                        }
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="ml-auto sm:ml-0">
+                  {viewMode === "list" ? (
+                    <List className="mr-2 h-4 w-4" />
+                  ) : (
+                    <LayoutGrid className="mr-2 h-4 w-4" />
+                  )}
+                  View
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuRadioGroup
+                  value={currentViewType}
+                  onValueChange={(value) => {
+                    if (value === "river") {
+                      onViewModeChange("list");
+                    } else if (value === "square") {
+                      if (viewMode === "list") {
+                        onViewModeChange("grid-md");
                       }
-                    }}
+                    }
+                  }}
+                >
+                  <DropdownMenuRadioItem
+                    value="river"
+                    className="cursor-pointer"
                   >
-                    <DropdownMenuRadioItem
-                      value="river"
-                      className="cursor-pointer"
-                    >
-                      <List className="mr-2 h-4 w-4" />
-                      River
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      value="square"
-                      className="cursor-pointer"
-                    >
-                      <LayoutGrid className="mr-2 h-4 w-4" />
-                      Square
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Size</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={currentGridSize || "grid-md"}
-                    onValueChange={(value) => {
-                      onViewModeChange(value as ViewMode);
-                    }}
+                    <List className="mr-2 h-4 w-4" />
+                    River
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    value="square"
+                    className="cursor-pointer"
                   >
-                    <DropdownMenuRadioItem
-                      value="grid-sm"
-                      disabled={currentViewType !== "square"}
-                      className="cursor-pointer"
-                    >
-                      <Grid className="mr-2 h-4 w-4" /> Small
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      value="grid-md"
-                      disabled={currentViewType !== "square"}
-                      className="cursor-pointer"
-                    >
-                      <Grid3X3 className="mr-2 h-4 w-4" /> Medium
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      value="grid-lg"
-                      disabled={currentViewType !== "square"}
-                      className="cursor-pointer"
-                    >
-                      <SquareIcon className="mr-2 h-4 w-4" /> Large
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                    <LayoutGrid className="mr-2 h-4 w-4" />
+                    Square
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Size</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={currentGridSize || "grid-md"}
+                  onValueChange={(value) => {
+                    onViewModeChange(value as ViewMode);
+                  }}
+                >
+                  <DropdownMenuRadioItem
+                    value="grid-sm"
+                    disabled={currentViewType !== "square"}
+                    className="cursor-pointer"
+                  >
+                    <Grid className="mr-2 h-4 w-4" /> Small
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    value="grid-md"
+                    disabled={currentViewType !== "square"}
+                    className="cursor-pointer"
+                  >
+                    <Grid3X3 className="mr-2 h-4 w-4" /> Medium
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    value="grid-lg"
+                    disabled={currentViewType !== "square"}
+                    className="cursor-pointer"
+                  >
+                    <SquareIcon className="mr-2 h-4 w-4" /> Large
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Overflow menu for smaller screens */}
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreHorizontal className="h-4 w-4" />
@@ -347,100 +318,82 @@ export default function GalleryToolbar({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {!showInToolbar.selectAll && (
-                  <DropdownMenuItem onClick={() => onSelectAll(true)}>
-                    <Checkbox className="mr-2" checked={isAllSelected} />
-                    Select All
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={() => onSelectAll(true)}>
+                  <Checkbox className="mr-2" checked={isAllSelected} />
+                  Select All
+                </DropdownMenuItem>
 
-                {!showInToolbar.slideshow && (
-                  <DropdownMenuItem disabled={totalMediaFiles === 0}>
-                    <Play className="mr-2 h-4 w-4" />
-                    Slideshow
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem disabled={totalMediaFiles === 0}>
+                  <Play className="mr-2 h-4 w-4" />
+                  Slideshow
+                </DropdownMenuItem>
 
-                {!showInToolbar.upload && (
-                  <DropdownMenuItem onClick={onUploadClick}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={onUploadClick}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload
+                </DropdownMenuItem>
 
-                {!showInToolbar.sort && (
-                  <>
-                    <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                    {sortByOptions.map((option) => (
-                      <DropdownMenuItem
-                        key={option.value}
-                        onClick={() => onSortChange(option.value, sortOrder)}
-                      >
-                        <option.icon className="mr-2 h-4 w-4" />
-                        {option.label}
-                        {sortBy === option.value && (
-                          <span className="ml-auto">
-                            {sortOrder === "asc" ? (
-                              <ArrowUp className="h-4 w-4" />
-                            ) : (
-                              <ArrowDown className="h-4 w-4" />
-                            )}
-                          </span>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </>
-                )}
-
-                {!showInToolbar.filter && (
-                  <DropdownMenuItem>
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filter
-                  </DropdownMenuItem>
-                )}
-
-                {!showInToolbar.view && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>View</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => onViewModeChange("list")}>
-                      <List className="mr-2 h-4 w-4" />
-                      List
-                      {viewMode === "list" && (
-                        <Check className="ml-auto h-4 w-4" />
-                      )}
-                    </DropdownMenuItem>
+                <>
+                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                  {sortByOptions.map((option) => (
                     <DropdownMenuItem
-                      onClick={() => onViewModeChange("grid-sm")}
+                      key={option.value}
+                      onClick={() => onSortChange(option.value, sortOrder)}
                     >
-                      <Grid className="mr-2 h-4 w-4" />
-                      Small Grid
-                      {viewMode === "grid-sm" && (
-                        <Check className="ml-auto h-4 w-4" />
+                      <option.icon className="mr-2 h-4 w-4" />
+                      {option.label}
+                      {sortBy === option.value && (
+                        <span className="ml-auto">
+                          {sortOrder === "asc" ? (
+                            <ArrowUp className="h-4 w-4" />
+                          ) : (
+                            <ArrowDown className="h-4 w-4" />
+                          )}
+                        </span>
                       )}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onViewModeChange("grid-md")}
-                    >
-                      <Grid3X3 className="mr-2 h-4 w-4" />
-                      Medium Grid
-                      {viewMode === "grid-md" && (
-                        <Check className="ml-auto h-4 w-4" />
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onViewModeChange("grid-lg")}
-                    >
-                      <SquareIcon className="mr-2 h-4 w-4" />
-                      Large Grid
-                      {viewMode === "grid-lg" && (
-                        <Check className="ml-auto h-4 w-4" />
-                      )}
-                    </DropdownMenuItem>
-                  </>
-                )}
+                  ))}
+                </>
+
+                <DropdownMenuItem>
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filter
+                </DropdownMenuItem>
+
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>View</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => onViewModeChange("list")}>
+                    <List className="mr-2 h-4 w-4" />
+                    List
+                    {viewMode === "list" && (
+                      <Check className="ml-auto h-4 w-4" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewModeChange("grid-sm")}>
+                    <Grid className="mr-2 h-4 w-4" />
+                    Small Grid
+                    {viewMode === "grid-sm" && (
+                      <Check className="ml-auto h-4 w-4" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewModeChange("grid-md")}>
+                    <Grid3X3 className="mr-2 h-4 w-4" />
+                    Medium Grid
+                    {viewMode === "grid-md" && (
+                      <Check className="ml-auto h-4 w-4" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onViewModeChange("grid-lg")}>
+                    <SquareIcon className="mr-2 h-4 w-4" />
+                    Large Grid
+                    {viewMode === "grid-lg" && (
+                      <Check className="ml-auto h-4 w-4" />
+                    )}
+                  </DropdownMenuItem>
+                </>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </>
         )}
       </div>

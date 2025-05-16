@@ -56,7 +56,6 @@ export default function GalleryPageLayout() {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="flex flex-1 flex-col bg-background">
-        {" "}
         {/* Added flex-1 */}
         <header className="p-4 border-b border-border flex items-center justify-start md:hidden">
           <SidebarTrigger />

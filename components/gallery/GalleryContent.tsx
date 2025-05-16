@@ -746,7 +746,7 @@ export default function GalleryContent() {
       />
 
       {/* Drag Indicator */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {document.body.classList.contains("dragging-file") && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -757,7 +757,7 @@ export default function GalleryContent() {
             Drag to an album or favorites to add
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </div>
   );
 }
