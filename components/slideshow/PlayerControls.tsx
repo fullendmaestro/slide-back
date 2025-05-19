@@ -71,9 +71,9 @@ export default function PlayerControls({
   }
 
   return (
-    <div className="player-controls-bar absolute top-6 left-1/2 -translate-x-1/2 z-20 bg-black/70 backdrop-blur-lg p-3 sm:p-4 text-white rounded-xl shadow-2xl transition-all duration-300 ease-in-out w-auto max-w-sm sm:max-w-md md:max-w-lg">
+    <div className="player-controls-bar absolute top-6 left-1/2 -translate-x-1/2 z-20 bg-black/70 backdrop-blur-lg p-1 text-white rounded-xl shadow-2xl transition-all duration-300 ease-in-out w-auto max-w-sm sm:max-w-md md:max-w-lg">
       {/* Main controls row */}
-      <div className="flex items-center justify-center gap-1 sm:gap-2">
+      <div className="flex items-center justify-center gap-1 sm:gap-2 h-12">
         {/* Centered main controls */}
         <Button
           variant="ghost"

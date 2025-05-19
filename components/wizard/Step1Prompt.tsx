@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MemoryPromptInput } from "./ai-input/MemoryPromptInput";
 
 interface Step1PromptProps {
-  form: UseFormReturn<MemoryWizardData>;
+  form: any;
+  // form: UseFormReturn<MemoryWizardData>;
 }
 
 export default function Step1Prompt({ form }: Step1PromptProps) {

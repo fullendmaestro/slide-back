@@ -5,7 +5,7 @@ import type React from "react";
 import { useState } from "react";
 import FileDisplayIcon from "@/components/files/FileDisplayIcon";
 import type { File } from "@/lib/db/schema";
-import { cn } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import FileActions from "@/components/files/FileActions";
 import { motion } from "framer-motion";
@@ -140,7 +140,7 @@ export default function FileCard({
         <div className="text-white text-sm font-medium truncate">
           {file.name}
         </div>
-        <div className="text-white/70 text-xs">{file.size}</div>
+        <div className="text-white/70 text-xs">{formatBytes(file.size)}</div>
       </div>
 
       {/* Selection checkbox - always visible when selected */}

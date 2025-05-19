@@ -23,7 +23,8 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Step2DateRangeProps {
-  form: UseFormReturn<MemoryWizardData>;
+  form: any;
+  // form: UseFormReturn<MemoryWizardData>;
 }
 
 export default function Step2DateRange({ form }: Step2DateRangeProps) {

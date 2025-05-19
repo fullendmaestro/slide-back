@@ -33,6 +33,7 @@ import FileDetailsDialog from "./FileDetailsDialog";
 import AddToAlbumDialog from "./AddToAlbumDialog";
 import type { File } from "@/lib/db/schema";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatBytes } from "@/lib/utils";
 
 export default function GalleryContent() {
   // Use a ref to prevent infinite re-renders
@@ -528,7 +529,7 @@ export default function GalleryContent() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell text-muted-foreground">
-                        {file.size}
+                        {formatBytes(file.size)}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">
                         {sortBy === "dateCreated"

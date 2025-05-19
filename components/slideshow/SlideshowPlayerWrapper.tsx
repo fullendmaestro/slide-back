@@ -5,21 +5,16 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useMemoryStore } from "@/lib/stores/memoryStore";
 
-interface SlideshowPlayerWrapperProps {
-  onExit: () => void;
-}
-
-export default function SlideshowPlayerWrapper({
-  onExit,
-}: SlideshowPlayerWrapperProps) {
-  const results = useMemoryStore((state) => state.slides);
+export default function SlideshowPlayerWrapper() {
+  const results = useMemoryStore((state) => state.results);
   const isLoading = useMemoryStore((state) => state.isLoading);
   const error = useMemoryStore((state) => state.error);
-  const reset = useMemoryStore((state) => state.resetMemory);
+  const reset = useMemoryStore((state) => state.reset);
+  const setShowSlideshow = useMemoryStore((state) => state.setShowSlideshow);
 
   const handleExit = () => {
     reset(); // Reset the memory store
-    onExit(); // Call the parent's onExit function
+    setShowSlideshow(false); // Call the parent's onExit function
   };
 
   // Convert the results to the format expected by SlideshowPlayer

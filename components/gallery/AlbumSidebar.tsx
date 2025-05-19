@@ -279,7 +279,12 @@ export default function AlbumSidebar() {
 
           <SidebarGroup>
             <SidebarGroupLabel className="py-2 mb-3 flex items-center justify-between group-data-[collapsible=icon]:hidden">
-              <span className="text-lg">Albums</span>
+              <span className="text-lg flex flex-center">
+                <span>Albums </span>
+                {isLoading && (
+                  <span className="animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-primary"></span>
+                )}
+              </span>
               <Dialog
                 open={isCreateAlbumOpen}
                 onOpenChange={setIsCreateAlbumOpen}
@@ -329,18 +334,7 @@ export default function AlbumSidebar() {
               </Dialog>
             </SidebarGroupLabel>
             <div className="max-h-[calc(100vh-240px)] overflow-y-auto group-data-[collapsible=icon]:hidden">
-              {isLoading ? (
-                // Loading skeleton
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="animate-pulse flex items-center h-8 px-3 my-1 rounded-md bg-muted/50"
-                  >
-                    <div className="h-4 w-4 rounded-full bg-muted-foreground/20 mr-2"></div>
-                    <div className="h-4 w-24 bg-muted-foreground/20 rounded"></div>
-                  </div>
-                ))
-              ) : albums.length === 0 ? (
+              {albums.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
                   <p>No albums yet</p>
                   <p className="text-sm">

@@ -14,81 +14,105 @@ import { toast } from "sonner";
 import Step1Prompt from "./Step1Prompt";
 import Step2DateRange from "./Step2DateRange";
 import Step3Album from "./Step3Album";
-import Step4MoodStyle from "./Step4MoodStyle";
-import Step5FileSources from "./Step5FileSources";
+import Step4Music from "./Step4Music";
+import Step5Options from "./Step5Options";
 import { useMemoryStore } from "@/lib/stores/memoryStore";
 import { useMemorySearch } from "@/lib/hooks/useMemory";
 import { useAlbums } from "@/lib/hooks/useAlbums";
+import Step6SlideBack from "./Step6SlideBack";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 const stepTitles = [
   "Describe Your Memory",
   "Set Date Range",
-  "Choose Album",
-  "Select Mood & Style",
-  "Specify Media Types",
+  "Choose Albums",
+  "Background Music",
+  "Additional Options",
+  "Slide BAck",
 ];
 
 interface MemoryWizardFormProps {
-  onSubmitForm: (data: MemoryWizardData) => void;
+  onSubmitForm: () => void;
 }
 
-export default function MemoryWizardForm({
-  onSubmitForm,
-}: MemoryWizardFormProps) {
+export default function MemoryWizardForm() {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Load albums for the album selection step
   const { data: albums } = useAlbums();
 
   // Memory store actions
-  const setQuery = useMemoryStore((state) => state.setPrompt);
+  const setQuery = useMemoryStore((state) => state.setQuery);
   const setDateRange = useMemoryStore((state) => state.setDateRange);
-  const setAlbumId = useMemoryStore((state) => state.setAlbumId);
+  const setAlbumIds = useMemoryStore((state) => state.setAlbumIds);
+  const setMusic = useMemoryStore((state) => state.setMusic);
+  const setAiReview = useMemoryStore((state) => state.setAiReview);
 
-  // Memory search query
-  const memorySearch = useMemorySearch();
+  // Memory store state
+  const setResults = useMemoryStore((state) => state.setResults);
+  const setShowSlideshow = useMemoryStore((state) => state.setShowSlideshow);
+  const setLoading = useMemoryStore((state) => state.setIsLoading);
+  const isLoading = useMemoryStore((state) => state.isLoading);
 
-  const form = useForm<MemoryWizardData>({
+  const form = useForm({
     resolver: zodResolver(memoryWizardSchema),
     defaultValues: {
       prompt: "",
       dateRange: { from: undefined, to: undefined },
-      album: "",
-      mood: "",
-      style: "",
-      fileSources: { photo: true, video: false },
+      albums: [],
+      music: {
+        enabled: true,
+        trackId: undefined,
+        source: "default",
+      },
+      options: { photo: true, video: false, aiReview: false },
     },
     mode: "onChange",
   });
 
-  const processSubmit: SubmitHandler<MemoryWizardData> = (data) => {
-    console.log("Memory Wizard Data:", data);
-
+  const processSubmit: SubmitHandler<MemoryWizardData> = async (data) => {
     // Set the search parameters in the memory store
     setQuery(data.prompt);
-    setDateRange({
-      from: data.dateRange.from || undefined,
-      to: data.dateRange.to || undefined,
-    });
-    setAlbumId(data.album || null);
+    setDateRange(data.dateRange.from || null, data.dateRange.to || null);
+    setAlbumIds(data.albums);
+    setMusic(data.music);
+    setAiReview(data.options.aiReview);
 
-    // Trigger the search
-    memorySearch
-      .refetch()
-      .then(() => {
-        toast.success("Slideshow preferences saved!", {
-          description: "Your slideshow is ready to view.",
-        });
-        onSubmitForm(data);
-      })
-      .catch((error) => {
-        toast.error("Failed to create slideshow", {
-          description:
-            error instanceof Error ? error.message : "Please try again.",
-        });
+    try {
+      setLoading(true);
+      toast.success("Fetching Memories!", {
+        description: "We are now searching your memories.",
       });
+
+      const response = await fetch("/api/memory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to search memories";
+        try {
+          const error = await response.json();
+          errorMsg = error.error || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
+      }
+
+      const results = await response.json();
+      setResults(results);
+
+      setShowSlideshow(true);
+      setLoading(false);
+    } catch (error) {
+      toast.error("Failed to create slideshow", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
+    }
   };
 
   const handleNext = async () => {
@@ -102,15 +126,15 @@ export default function MemoryWizardForm({
         isValid = await form.trigger("dateRange");
         break;
       case 3:
-        // Album is optional, schema handles empty, but trigger to show potential specific errors if any
-        isValid = await form.trigger("album");
+        // Albums is optional, schema handles empty, but trigger to show potential specific errors if any
+        isValid = await form.trigger("albums");
         break;
       case 4:
-        // Mood and Style are optional, trigger to show potential specific errors if any
-        isValid = await form.trigger(["mood", "style"]);
+        // Music is optional, trigger to show potential specific errors if any
+        isValid = await form.trigger("music");
         break;
       case 5:
-        isValid = await form.trigger("fileSources");
+        isValid = await form.trigger("options");
         break;
       default:
         isValid = true; // Should not happen
@@ -137,10 +161,10 @@ export default function MemoryWizardForm({
       // Prioritize 'to' for range errors
       else if (currentStep === 2 && errors.dateRange?.from)
         errorMessage = errors.dateRange.from.message || errorMessage;
-      else if (currentStep === 5 && errors.fileSources)
+      else if (currentStep === 5 && errors.options)
         errorMessage =
-          errors.fileSources.message ||
-          errors.fileSources.root?.message ||
+          errors.options.message ||
+          errors.options.root?.message ||
           errorMessage;
 
       toast.error("Validation Error", {
@@ -196,13 +220,23 @@ export default function MemoryWizardForm({
               >
                 Previous
               </Button>
-              <Button
-                type="button"
-                onClick={handleNext}
-                className="shadow-md px-6 py-3 text-base bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {currentStep === TOTAL_STEPS ? "Slide Back" : "Next"}
-              </Button>
+              {!isLoading ? (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="shadow-md px-6 py-3 text-base bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {currentStep === TOTAL_STEPS ? "Slide Back" : "Next"}{" "}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  disabled
+                  className="shadow-md px-6 py-3 text-base bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Loading
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -223,8 +257,11 @@ export default function MemoryWizardForm({
                 {currentStep === 3 && (
                   <Step3Album form={form} albums={albums || []} />
                 )}
-                {currentStep === 4 && <Step4MoodStyle form={form} />}
-                {currentStep === 5 && <Step5FileSources form={form} />}
+                {currentStep === 4 && <Step4Music form={form} />}
+                {currentStep === 5 && <Step5Options form={form} />}
+                {currentStep === 6 && (
+                  <Step6SlideBack form={form} albums={albums || []} />
+                )}
               </div>
             </form>
           </Form>

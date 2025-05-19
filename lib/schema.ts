@@ -23,13 +23,23 @@ export const memoryWizardSchema = z.object({
         path: ["to"],
       }
     ),
-  album: z.string().optional(),
-  mood: z.string().optional(),
-  style: z.string().optional(),
-  fileSources: z
+  albums: z.array(z.string()).default([]),
+  music: z
     .object({
-      photo: z.boolean(),
-      video: z.boolean(),
+      enabled: z.boolean().default(true),
+      trackId: z.string().optional(),
+      source: z.enum(["default", "user"]).default("default"),
+    })
+    .default({
+      enabled: true,
+      trackId: undefined,
+      source: "default",
+    }),
+  options: z
+    .object({
+      photo: z.boolean().default(true),
+      video: z.boolean().default(false),
+      aiReview: z.boolean().default(false),
     })
     .refine((data) => data.photo || data.video, {
       message: "Please select at least one file source (photos or videos).",

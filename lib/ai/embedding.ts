@@ -1,8 +1,8 @@
 import { embed, generateText } from "ai";
 import { google } from "@ai-sdk/google";
+import { db } from "@/lib/db";
 import { file, albumFile } from "@/lib/db/schema";
-import { eq, and, between, inArray, sql } from "drizzle-orm"; // Ensure this is imported
-import { db } from "../db";
+import { eq, and, between, inArray, sql } from "drizzle-orm";
 
 // Define the Gemini embedding model
 const embeddingModel = google.textEmbeddingModel("text-embedding-004", {
@@ -24,34 +24,35 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 // Generate AI description for an image or video
-export async function generateFileDescription(
-  fileUrl: string,
-  fileType: string
-): Promise<string> {
-  try {
-    const prompt =
-      fileType === "image"
-        ? `Describe this image in detail: ${fileUrl}`
-        : `Describe this video in detail: ${fileUrl}`;
+// export async function generateFileDescription(
+//   fileUrl: string,
+//   fileType: string
+// ): Promise<string> {
+//   try {
+//     const prompt =
+//       fileType === "image"
+//         ? `Describe this image concisely, focusing on moods, places, events, and people visible: ${fileUrl}`
+//         : `Describe this video concisely, focusing on moods, places, events, and activities shown: ${fileUrl}`;
 
-    const { text } = await generateText({
-      model: google("gemini-1.5-flash-002"),
-      prompt,
-    });
+//     const { text } = await generateText({
+//       model: google("gemini-1.5-flash-002"),
+//       prompt,
+//       maxTokens: 150, // Keep it concise
+//     });
 
-    return text;
-  } catch (error) {
-    console.error("Error generating file description:", error);
-    return "No description available";
-  }
-}
+//     return text;
+//   } catch (error) {
+//     console.error("Error generating file description:", error);
+//     return "No description available";
+//   }
+// }
 
 // Find relevant content based on a query
 export async function findRelevantContent(
   query: string,
   userId: string,
   dateRange?: { from?: Date; to?: Date },
-  albumId?: string
+  albumIds?: string[]
 ): Promise<any> {
   try {
     // Generate embedding for the query
@@ -61,7 +62,7 @@ export async function findRelevantContent(
     const queryEmbeddingString = JSON.stringify(queryEmbedding);
 
     // Build the SQL query for similarity search
-    const filesQuery = db.select().from(file);
+    let filesQuery = db.select().from(file);
     filesQuery.where(eq(file.userId, userId));
 
     // Apply date filter if provided
@@ -70,7 +71,7 @@ export async function findRelevantContent(
         filesQuery.where(
           and(
             between(
-              sql`${file.dateTaken} OR ${file.dateCreated}`, // Use raw SQL for the OR condition
+              sql`COALESCE(${file.dateTaken}, ${file.dateCreated})`,
               dateRange.from,
               dateRange.to
             )
@@ -78,28 +79,28 @@ export async function findRelevantContent(
         );
       } else if (dateRange.from) {
         filesQuery.where(
-          sql`${file.dateTaken} OR ${file.dateCreated} >= ${dateRange.from}` // Use raw SQL for comparison
+          sql`COALESCE(${file.dateTaken}, ${file.dateCreated}) >= ${dateRange.from}`
         );
       } else if (dateRange.to) {
         filesQuery.where(
-          sql`${file.dateTaken} OR ${file.dateCreated} <= ${dateRange.to}` // Use raw SQL for comparison
+          sql`COALESCE(${file.dateTaken}, ${file.dateCreated}) <= ${dateRange.to}`
         );
       }
     }
 
     // Apply album filter if provided
-    if (albumId) {
+    if (albumIds && albumIds.length > 0) {
       const albumFiles = await db
         .select({ fileId: albumFile.fileId })
         .from(albumFile)
-        .where(eq(albumFile.albumId, albumId));
+        .where(inArray(albumFile.albumId, albumIds));
 
       const fileIds = albumFiles.map((af) => af.fileId);
 
       if (fileIds.length > 0) {
         filesQuery.where(inArray(file.id, fileIds));
       } else {
-        // No files in this album
+        // No files in these albums
         return [];
       }
     }
@@ -125,6 +126,69 @@ export async function findRelevantContent(
   } catch (error) {
     console.error("Error finding relevant content:", error);
     throw new Error("Failed to find relevant content");
+  }
+}
+
+// CRAG (Corrective Retrieval Augmented Generation) framework
+// Review and filter search results using AI
+export async function reviewContentWithAI(
+  query: string,
+  results: any[]
+): Promise<any[]> {
+  try {
+    if (results.length === 0) return results;
+
+    // Prepare a batch of results for review (to minimize API calls)
+    const batchSize = 10;
+    const reviewedResults: any[] = [];
+
+    for (let i = 0; i < results.length; i += batchSize) {
+      const batch = results.slice(i, i + batchSize);
+
+      // Create a prompt for the AI to review this batch
+      const prompt = `
+        I'm searching for memories related to: "${query}"
+        
+        Below are some potential matches. For each item, evaluate if it's truly relevant to my query.
+        Return only the IDs of items that are relevant, separated by commas.
+        
+        ${batch
+          .map(
+            (item, index) => `
+          Item ${index + 1} (ID: ${item.id}):
+          - Description: ${item.description || "No description"}
+          - Type: ${item.type}
+          - Date: ${item.dateTaken || item.dateCreated || "Unknown date"}
+          - Tags: ${item.tags || "No tags"}
+        `
+          )
+          .join("\n")}
+      `;
+
+      const { text } = await generateText({
+        model: google("gemini-1.5-flash-002"),
+        prompt,
+        temperature: 0.2, // Low temperature for more deterministic results
+      });
+
+      // Parse the response to get relevant IDs
+      const relevantIds = text
+        .split(",")
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0);
+
+      // Filter the batch to only include relevant items
+      const relevantItems = batch.filter((item) =>
+        relevantIds.includes(item.id)
+      );
+      reviewedResults.push(...relevantItems);
+    }
+
+    return reviewedResults;
+  } catch (error) {
+    console.error("Error reviewing content with AI:", error);
+    // Fall back to the original results if AI review fails
+    return results;
   }
 }
 

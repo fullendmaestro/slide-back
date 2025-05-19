@@ -5,7 +5,7 @@ import {
   Star,
   FolderPlus,
   Download,
-  Link,
+  Link as ILink,
   Share2,
   FileEdit,
   Trash2,
@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import type { File } from "@/lib/db/schema";
 import { useToggleFavorite } from "@/lib/hooks/useFiles";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface FileActionsProps {
   file: File;
@@ -119,6 +120,11 @@ export default function FileActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem>
+          <ILink className="mr-2 h-4 w-4" />
+          <Link href={`/files/${file.id}`}>Open</Link>
+        </DropdownMenuItem>
+
         <DropdownMenuItem onClick={handleToggleFavorite}>
           <Star
             className={`mr-2 h-4 w-4 ${
@@ -141,7 +147,7 @@ export default function FileActions({
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleCopyLink}>
-          <Link className="mr-2 h-4 w-4" />
+          <ILink className="mr-2 h-4 w-4" />
           Copy Link
         </DropdownMenuItem>
 

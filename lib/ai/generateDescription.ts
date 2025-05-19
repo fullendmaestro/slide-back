@@ -7,47 +7,44 @@ export async function generateFileDescription(
   fileName: string
 ): Promise<string> {
   try {
-    // Create a more detailed prompt based on file type
+    // Create a more focused prompt based on file type
     let prompt = "";
 
     if (fileType === "image") {
       prompt = `
-        Analyze this image in detail: ${fileUrl}
+        Analyze this image: ${fileUrl}
         
-        Provide a comprehensive description that includes:
-        1. The main subject(s) or focus of the image
-        2. Any people, objects, or scenery visible
-        3. The setting or environment
-        4. Notable colors, lighting, or mood
-        5. Any text or signage visible
-        6. Potential context or occasion (if apparent)
+        Provide a CONCISE description (max 2-3 sentences) focusing specifically on:
+        - The mood or emotional tone of the image
+        - The location or setting
+        - Any notable events or activities happening
+        - People present (if any) and their relationship (family, friends, etc.)
         
-        Format your response as a cohesive paragraph that would help someone recall or search for this image later.
+        Keep your description brief but evocative, focusing on the emotional and memory aspects.
         Filename for context: ${fileName}
       `;
     } else if (fileType === "video") {
       prompt = `
         Analyze this video: ${fileUrl}
         
-        Provide a comprehensive description that includes:
-        1. The main subject(s) or focus of the video
-        2. Any people, actions, or events visible
-        3. The setting or environment
-        4. Notable visual elements or audio components
-        5. Potential context or purpose of the video
+        Provide a CONCISE description (max 2-3 sentences) focusing specifically on:
+        - The mood or emotional tone of the video
+        - The location or setting
+        - Any notable events or activities happening
+        - People present (if any) and their relationship (family, friends, etc.)
         
-        Format your response as a cohesive paragraph that would help someone recall or search for this video later.
+        Keep your description brief but evocative, focusing on the emotional and memory aspects.
         Filename for context: ${fileName}
       `;
     } else {
-      prompt = `Describe this file: ${fileUrl} (Filename: ${fileName})`;
+      prompt = `Briefly describe this file: ${fileUrl} (Filename: ${fileName})`;
     }
 
     const { text } = await generateText({
       model: google("gemini-1.5-flash-002"),
       prompt,
       temperature: 0.7, // Add some creativity but keep it factual
-      maxTokens: 300, // Limit to a reasonable length
+      maxTokens: 150, // Limit to ensure conciseness
     });
 
     return text;

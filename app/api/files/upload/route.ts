@@ -3,7 +3,8 @@ import { auth } from "@/app/(auth)/auth";
 import { put } from "@vercel/blob";
 import { db } from "@/lib/db";
 import { file } from "@/lib/db/schema";
-import { generateFileDescription, generateEmbedding } from "@/lib/ai/embedding";
+import { generateEmbedding } from "@/lib/ai/embedding";
+import { generateFileDescription } from "@/lib/ai/generateDescription";
 import { z } from "zod";
 
 // File validation schema
@@ -65,7 +66,11 @@ export async function POST(request: Request) {
     const fileType = uploadedFile.type.startsWith("image/") ? "image" : "video";
 
     // Generate AI description
-    const aiDescription = await generateFileDescription(blob.url, fileType);
+    const aiDescription = await generateFileDescription(
+      blob.url,
+      fileType,
+      uploadedFile.name
+    );
 
     // Generate embedding for the description
     const embedding = await generateEmbedding(aiDescription);

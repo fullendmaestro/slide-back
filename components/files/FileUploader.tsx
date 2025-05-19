@@ -65,6 +65,7 @@ export default function FileUploader({ isOpen, onClose }: FileUploaderProps) {
     maxSize: 50 * 1024 * 1024, // 50MB
     onDrop: (acceptedFiles) => {
       const newFiles = acceptedFiles.map((file) => {
+        console.log("droped file", file);
         // Create preview URL for images
         const previewUrl = file.type.startsWith("image/")
           ? URL.createObjectURL(file)

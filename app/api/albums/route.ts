@@ -17,7 +17,6 @@ export async function GET() {
       where: eq(album.userId, session.user.id),
       orderBy: [asc(album.name)],
     });
-    console.log("returning albums", albums);
 
     return NextResponse.json(albums);
   } catch (error) {

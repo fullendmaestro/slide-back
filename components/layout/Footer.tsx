@@ -16,7 +16,7 @@ export default function Footer() {
           &copy; {currentYear !== null ? currentYear : "..."} Slide Back. All
           rights reserved.
         </p>
-        <p className="mt-1">Create and cherish your memories.</p>
+        <p className="mt-1">Remember and cherish your memories.</p>
       </div>
     </footer>
   );
