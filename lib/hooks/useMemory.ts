@@ -1,60 +1,74 @@
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useMemoryStore } from "@/lib/stores/memoryStore";
 
-// Search for memories
 export function useMemorySearch() {
-  const query = useMemoryStore((state) => state.prompt);
-  const dateRange = useMemoryStore((state) => state.dateRange);
-  const albumId = useMemoryStore((state) => state.albumId);
-  // const setResults = useMemoryStore((state) => state.setResults);
-  // const setLoading = useMemoryStore((state) => state.setLoading);
+  const query = useMemoryStore((state) => state.query);
+  const dateRangeFrom = useMemoryStore((state) => state.dateRangeFrom);
+  const dateRangeTo = useMemoryStore((state) => state.dateRangeTo);
+  const albumIds = useMemoryStore((state) => state.albumIds);
+  const aiReview = useMemoryStore((state) => state.aiReview);
+  const setResults = useMemoryStore((state) => state.setResults);
+  const setIsLoading = useMemoryStore((state) => state.setIsLoading);
   const setError = useMemoryStore((state) => state.setError);
 
   return useQuery({
-    queryKey: ["memories", query, dateRange, albumId],
+    queryKey: ["memory"],
     queryFn: async () => {
+      console.log("memorying", {
+        query,
+        dateRange: {
+          from: dateRangeFrom ? dateRangeFrom.toISOString() : null,
+          to: dateRangeTo ? dateRangeTo.toISOString() : null,
+        },
+        albumIds,
+        aiReview,
+      });
       if (!query) {
-        return [];
+        setResults([]);
+        return { results: [] };
       }
 
-      // setLoading(true);
+      setIsLoading(true);
+      setError(null);
+
       try {
-        let url = `/api/memory?query=${encodeURIComponent(query)}`;
-
-        if (dateRange.from) {
-          url += `&fromDate=${dateRange.from.toISOString()}`;
-        }
-
-        if (dateRange.to) {
-          url += `&toDate=${dateRange.to.toISOString()}`;
-        }
-
-        if (albumId) {
-          url += `&albumId=${albumId}`;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch("/api/memory", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query,
+            dateRange: {
+              from: dateRangeFrom ? dateRangeFrom.toISOString() : null,
+              to: dateRangeTo ? dateRangeTo.toISOString() : null,
+            },
+            albumIds,
+            aiReview,
+          }),
+        });
 
         if (!response.ok) {
-          throw new Error("Failed to search memories");
+          let errorMsg = "Failed to search memories";
+          try {
+            const error = await response.json();
+            errorMsg = error.error || errorMsg;
+          } catch {}
+          throw new Error(errorMsg);
         }
 
         const data = await response.json();
-        // setResults(data);
+        setResults(data.results);
         return data;
       } catch (error) {
         setError(
-          error instanceof Error ? error.message : "Failed to search memories"
-        );
-        toast.error(
-          error instanceof Error ? error.message : "Failed to search memories"
+          error instanceof Error ? error.message : "An unknown error occurred"
         );
         throw error;
       } finally {
-        // setLoading(false);
+        setIsLoading(false);
       }
     },
-    enabled: !!query,
+    enabled: false, // Only run when refetch is called
   });
 }
