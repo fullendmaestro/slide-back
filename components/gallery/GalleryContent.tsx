@@ -289,6 +289,7 @@ export default function GalleryContent() {
 
   const handleFileDoubleClick = (file: File) => {
     setPreviewFile(file);
+    setPreviwerOpen(true);
   };
 
   // Handle right-click event
