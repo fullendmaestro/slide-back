@@ -6,10 +6,8 @@ import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 
 // GET a single file by ID
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -48,10 +46,8 @@ const UpdateFileSchema = z.object({
 });
 
 // PATCH to update a file
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -103,10 +99,8 @@ export async function PATCH(
 }
 
 // DELETE a file
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user?.id) {

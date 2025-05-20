@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 
-export default function FileDetailPage({ params }: { params: { Id: string } }) {
+export default function FileDetailPage(props: { params: Promise<{ Id: string }> }) {
+  const params = use(props.params);
   const [file, setFile] = useState({});
 
   const getfile = async () => {

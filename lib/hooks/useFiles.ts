@@ -150,7 +150,7 @@ export function useUpdateFile() {
   return useMutation({
     mutationFn: async ({ updates }: { updates: Partial<File> }) => {
       const response = await fetch(`/api/files/${updates.id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },

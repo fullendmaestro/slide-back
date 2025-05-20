@@ -39,6 +39,8 @@ export async function PUT(request: Request) {
     // Generate new embedding for the updated description
     const embedding = await generateEmbedding(description);
 
+    console.log("file description:", description);
+
     // Update the file
     const [updatedFile] = await db
       .update(file)
