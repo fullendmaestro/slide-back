@@ -90,7 +90,17 @@ export default function MemoryWizardForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          query: data.prompt,
+          dateRange: {
+            from: data.dateRange.from
+              ? data.dateRange.from.toISOString()
+              : null,
+            to: data.dateRange.to ? data.dateRange.to.toISOString() : null,
+          },
+          albumIds: data.albums,
+          aiReview: data.options.aiReview,
+        }),
       });
 
       if (!response.ok) {

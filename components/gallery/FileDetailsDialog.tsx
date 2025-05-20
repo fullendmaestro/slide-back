@@ -66,6 +66,7 @@ export default function FileDetailsDialog({
 
       // Update description if changed
       if (description !== file.description) {
+        console.log("Updating description:", file.id, description);
         await updateDescriptionMutation.mutateAsync({
           fileId: file.id,
           description,
@@ -154,8 +155,7 @@ export default function FileDetailsDialog({
                 placeholder="Add a description..."
               />
               <p className="text-xs text-muted-foreground">
-                Updating the description will regenerate AI embeddings for
-                improved search.
+                Updating the description will improve memory slide back results.
               </p>
             </div>
 

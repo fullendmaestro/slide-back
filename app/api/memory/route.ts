@@ -27,41 +27,41 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     console.log("memory body", body);
-    // const validatedData = MemorySearchSchema.safeParse(body);
+    const validatedData = MemorySearchSchema.safeParse(body);
 
-    // if (!validatedData.success) {
-    //   return NextResponse.json(
-    //     { error: validatedData.error.errors[0].message },
-    //     { status: 400 }
-    //   );
-    // }
+    if (!validatedData.success) {
+      return NextResponse.json(
+        { error: validatedData.error.errors[0].message },
+        { status: 400 }
+      );
+    }
 
-    // const { query, dateRange, albumIds, aiReview } = validatedData.data;
+    const { query, dateRange, albumIds, aiReview } = validatedData.data;
 
     // Convert string dates to Date objects if they exist
-    // const parsedDateRange = dateRange
-    //   ? {
-    //       from: dateRange.from ? new Date(dateRange.from) : undefined,
-    //       to: dateRange.to ? new Date(dateRange.to) : undefined,
-    //     }
-    //   : undefined;
+    const parsedDateRange = dateRange
+      ? {
+          from: dateRange.from ? new Date(dateRange.from) : undefined,
+          to: dateRange.to ? new Date(dateRange.to) : undefined,
+        }
+      : undefined;
 
     // Find relevant content based on embedding similarity
-    // let results = await findRelevantContent(
-    //   query,
-    //   session.user.id,
-    //   parsedDateRange,
-    //   albumIds
-    // );
+    let results = await findRelevantContent(
+      query,
+      session.user.id,
+      parsedDateRange,
+      albumIds
+    );
 
     // If AI review is enabled, filter results using AI
-    // if (aiReview && results.length > 0) {
-    //   results = await reviewContentWithAI(query, results);
-    // }
+    if (aiReview && results.length > 0) {
+      results = await reviewContentWithAI(query, results);
+    }
 
     let filesQuery = db.select().from(file);
     filesQuery.where(eq(file.userId, session?.user?.id));
-    const results = await filesQuery;
+    results = await filesQuery;
     console.log("memory results", results);
     return NextResponse.json(results);
   } catch (error) {
