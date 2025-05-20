@@ -2,7 +2,9 @@
 import Image from "next/image";
 import { useEffect, useState, use } from "react";
 
-export default function FileDetailPage(props: { params: Promise<{ Id: string }> }) {
+export default function FileDetailPage(props: {
+  params: Promise<{ Id: string }>;
+}) {
   const params = use(props.params);
   const [file, setFile] = useState({});
 
@@ -20,7 +22,7 @@ export default function FileDetailPage(props: { params: Promise<{ Id: string }> 
 
   return (
     <div className="relative flex justify-center items-center align-center w-full h-full">
-      <Image
+      {/* <Image
         className="object-contain"
         // width={file.width}
         // height={file.height}
@@ -31,7 +33,7 @@ export default function FileDetailPage(props: { params: Promise<{ Id: string }> 
         // version={version}
         // placeholderStyle="dark"
         // {...transformations}
-      />
+      /> */}
     </div>
   );
 }
