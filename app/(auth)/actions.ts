@@ -2,13 +2,21 @@
 
 import { z } from "zod";
 
-import { createUser, getUser } from "@/lib/db/queries";
+import { createUser, getUser, updateUserProfile } from "@/lib/db/queries";
 
 import { signIn } from "./auth";
 
 const authFormSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+});
+
+const registerFormSchema = authFormSchema.extend({
+  name: z.string().min(2).optional(),
+});
+
+const profileUpdateSchema = z.object({
+  name: z.string().min(2).optional(),
 });
 
 export interface LoginActionState {
@@ -56,9 +64,10 @@ export const register = async (
   formData: FormData
 ): Promise<RegisterActionState> => {
   try {
-    const validatedData = authFormSchema.parse({
+    const validatedData = registerFormSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
+      name: formData.get("name"),
     });
 
     const [user] = await getUser(validatedData.email);
@@ -66,11 +75,43 @@ export const register = async (
     if (user) {
       return { status: "user_exists" } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password);
+    await createUser(
+      validatedData.email,
+      validatedData.password,
+      validatedData.name
+    );
     await signIn("credentials", {
       email: validatedData.email,
       password: validatedData.password,
       redirect: false,
+    });
+
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { status: "invalid_data" };
+    }
+
+    return { status: "failed" };
+  }
+};
+
+export interface ProfileUpdateActionState {
+  status: "idle" | "in_progress" | "success" | "failed" | "invalid_data";
+}
+
+export const updateProfile = async (
+  _: ProfileUpdateActionState,
+  formData: FormData,
+  userId: string
+): Promise<ProfileUpdateActionState> => {
+  try {
+    const validatedData = profileUpdateSchema.parse({
+      name: formData.get("name"),
+    });
+
+    await updateUserProfile(userId, {
+      name: validatedData.name,
     });
 
     return { status: "success" };

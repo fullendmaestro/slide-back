@@ -22,6 +22,13 @@
       "when": 1747103466014,
       "tag": "0002_talented_proteus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747742436627,
+      "tag": "0003_silly_black_queen",
+      "breakpoints": true
     }
   ]
 }

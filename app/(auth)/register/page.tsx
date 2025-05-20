@@ -15,6 +15,7 @@ export default function Page() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
 
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
@@ -44,6 +45,7 @@ export default function Page() {
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get("email") as string);
+    setName(formData.get("name") as string);
     formAction(formData);
   };
 
@@ -56,7 +58,12 @@ export default function Page() {
             Create an account with your email and password
           </p>
         </div>
-        <AuthForm action={handleSubmit} defaultEmail={email}>
+        <AuthForm
+          action={handleSubmit}
+          defaultEmail={email}
+          defaultName={name}
+          showNameField
+        >
           <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {"Already have an account? "}

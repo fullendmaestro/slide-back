@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Wand2 } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 import Step1Prompt from "./Step1Prompt";
 import Step2DateRange from "./Step2DateRange";
@@ -41,6 +42,7 @@ export default function MemoryWizardForm() {
 
   // Load albums for the album selection step
   const { data: albums } = useAlbums();
+  const { data: session } = useSession();
 
   // Memory store actions
   const setQuery = useMemoryStore((state) => state.setQuery);
@@ -202,7 +204,10 @@ export default function MemoryWizardForm() {
                 <Wand2 className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-3xl font-bold text-foreground">
-                Hello, Nick
+                Hello,{" "}
+                {session?.user?.name
+                  ? `${session.user.name.slice(0, 4)}...`
+                  : "Guest"}
               </h1>
             </div>
             <p className="text-muted-foreground text-base leading-relaxed">

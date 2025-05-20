@@ -7,7 +7,11 @@ import { getUser } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
 
 interface ExtendedSession extends Session {
-  user: User;
+  user: User & {
+    id: string;
+    name?: string | null;
+    image?: string | null;
+  };
 }
 
 export const {
@@ -31,9 +35,15 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name || null;
+        token.image = user.image || null;
+      }
+
+      if (trigger === "update" && session?.user) {
+        return { ...token, ...session.user };
       }
 
       return token;
@@ -47,6 +57,8 @@ export const {
     }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = token.name as string | null;
+        session.user.image = token.image as string | null;
       }
 
       return session;

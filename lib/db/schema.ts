@@ -15,6 +15,8 @@ export const user = pgTable("User", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   email: varchar("email", { length: 64 }).notNull(),
   password: varchar("password", { length: 64 }),
+  name: varchar("name", { length: 255 }),
+  image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -40,7 +42,7 @@ export const file = pgTable("File", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
-  type: varchar("type", { length: 50 }).notNull(), // image, video
+  type: varchar("type", { length: 50 }).notNull(), // image, video, audio
   size: integer("size").notNull(), // in bytes
   url: text("url").notNull(),
   thumbnailUrl: text("thumbnail_url"),
