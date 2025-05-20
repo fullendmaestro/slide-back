@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       : undefined;
 
     // Find relevant content based on embedding similarity
-    let results = await findRelevantContent(
+    const results = await findRelevantContent(
       query,
       session.user.id,
       parsedDateRange,

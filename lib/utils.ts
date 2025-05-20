@@ -47,11 +47,11 @@ export function addCommas(number: number | string) {
 
   const num = `${number}`;
   const [whole, decimal] = num.split(".");
-  let digitsSplit = whole.split("");
+  const digitsSplit = whole.split("");
   let counter = 0;
 
   // Iterate through the digits from right to left
-  for (var i = digitsSplit.length - 1; i >= 0; i--) {
+  for (let i = digitsSplit.length - 1; i >= 0; i--) {
     // Increment the counter
     counter++;
 

@@ -63,7 +63,7 @@ export async function findRelevantContent(
     const queryEmbeddingString = JSON.stringify(queryEmbedding);
 
     // Build the SQL query for similarity search
-    let filesQuery = db.select().from(file);
+    const filesQuery = db.select().from(file);
     filesQuery.where(eq(file.userId, userId));
 
     // Apply date filter if provided
