@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import FileDisplayIcon from "@/components/files/FileDisplayIcon";
 import Image from "next/image";
+import { formatBytes } from "@/lib/utils";
 
 interface FileDetailsDialogProps {
   file: File | null;
@@ -167,7 +168,7 @@ export default function FileDetailsDialog({
                 <dd>{file.type}</dd>
 
                 <dt className="text-muted-foreground">Size</dt>
-                <dd>{file.size}</dd>
+                <dd>{formatBytes(file.size)}</dd>
 
                 <dt className="text-muted-foreground">Created</dt>
                 <dd>{formatDate(file.dateCreated)}</dd>

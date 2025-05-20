@@ -17,6 +17,8 @@ import {
   FileEdit,
   Trash2,
   Info,
+  Eye,
+  ScanEye,
 } from "lucide-react";
 import type { File } from "@/lib/db/schema";
 import { useToggleFavorite, useDeleteFile } from "@/lib/hooks/useFiles";
@@ -24,24 +26,28 @@ import { toast } from "sonner";
 import { useAlbumStore } from "@/lib/stores/albumStore";
 import { useCallback } from "react";
 import { useFileStore } from "@/lib/stores/fileStore";
+import { useRouter } from "next/navigation";
 
 interface FileContextMenuProps {
   file: File;
   children: React.ReactNode;
-  onAddToAlbum: (file: File) => void;
-  onViewDetails: (file: File) => void;
 }
 
 export default function FileContextMenu({
   file,
   children,
-  onAddToAlbum,
-  onViewDetails,
 }: FileContextMenuProps) {
+  const router = useRouter();
   const toggleFavoriteMutation = useToggleFavorite();
   const deleteFileMutation = useDeleteFile();
 
-  const { toggleFileSelection, deselectAllFiles } = useFileStore();
+  const {
+    toggleFileSelection,
+    deselectAllFiles,
+    setDetailsFile,
+    setPreviewFile,
+    setPreviwerOpen,
+  } = useFileStore();
 
   const { setAddToAlbumOpen } = useAlbumStore();
 
@@ -113,7 +119,7 @@ export default function FileContextMenu({
           url: file.url,
         })
         .then(() => {
-          toast.success("Shared successfully");
+          toast.success("Sharing opend successfully");
         })
         .catch((error) => {
           toast.error("Sharing failed", { description: error.message });
@@ -137,7 +143,12 @@ export default function FileContextMenu({
   };
 
   const handleViewDetails = () => {
-    onViewDetails(file);
+    setDetailsFile(file);
+  };
+
+  const handleOpenPreview = () => {
+    setPreviewFile(file);
+    setPreviwerOpen(true);
   };
 
   return (
@@ -146,6 +157,15 @@ export default function FileContextMenu({
         <div>{children}</div>
       </ContextMenuTrigger>
       <ContextMenuContent>
+        <ContextMenuItem onClick={() => router.push(`/files/${file.id}`)}>
+          <Eye className="mr-2 h-4 w-4" />
+          Open
+        </ContextMenuItem>
+        <ContextMenuItem onClick={handleOpenPreview}>
+          <ScanEye className="mr-2 h-4 w-4" />
+          Preview
+        </ContextMenuItem>
+        <ContextMenuSeparator />
         <ContextMenuItem onClick={handleToggleFavorite}>
           <Star
             className={`mr-2 h-4 w-4 ${

@@ -74,23 +74,23 @@ export function formatBytes(bytes: number) {
   if (typeof bytes !== "number") return bytes;
 
   const limit = 1000;
-  let numberFormat = "b";
+  let numberFormat = "B";
 
   if (bytes >= limit * 1000000) {
-    numberFormat = "gb";
+    numberFormat = "GB";
   } else if (bytes >= limit * 1000) {
-    numberFormat = "mb";
+    numberFormat = "MB";
   } else if (bytes >= limit) {
-    numberFormat = "kb";
+    numberFormat = "KB";
   }
 
   let normalizedBytes = bytes;
 
-  if (numberFormat === "gb") {
+  if (numberFormat === "GB") {
     normalizedBytes = bytes / 1000000000;
-  } else if (numberFormat === "mb") {
+  } else if (numberFormat === "MB") {
     normalizedBytes = bytes / 1000000;
-  } else if (numberFormat === "kb") {
+  } else if (numberFormat === "KB") {
     normalizedBytes = bytes / 1000;
   }
 

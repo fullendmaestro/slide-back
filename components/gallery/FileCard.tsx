@@ -91,16 +91,7 @@ export default function FileCard({
   };
 
   return (
-    <FileContextMenu
-      file={file}
-      onAddToAlbum={onAddToAlbum}
-      onViewDetails={onViewDetails}
-      onDelete={onDelete}
-      onFavoriteToggle={() => {}}
-      onDownload={() => {}}
-      onCopyLink={() => {}}
-      // Add other handlers as needed
-    >
+    <FileContextMenu file={file}>
       <motion.div
         className={cn(
           "relative group rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 ease-in-out hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 w-full",

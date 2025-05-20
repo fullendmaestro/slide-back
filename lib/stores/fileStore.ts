@@ -18,6 +18,7 @@ interface FileState {
   isUploaderOpen: boolean;
   previewFile: File | null;
   detailsFile: File | null;
+  isPreviwerOpen: boolean;
 
   // Actions
   setFiles: (files: File[]) => void;
@@ -42,6 +43,7 @@ interface FileState {
   setUploaderOpen: (isOpen: boolean) => void;
   setPreviewFile: (file: File | null) => void;
   setDetailsFile: (file: File | null) => void;
+  setPreviwerOpen: (isPreviwerOpen: boolean) => void;
 }
 
 export const useFileStore = create<FileState>()(
@@ -56,6 +58,7 @@ export const useFileStore = create<FileState>()(
       isUploaderOpen: false,
       previewFile: null,
       detailsFile: null,
+      isPreviwerOpen: false,
 
       // Actions
       setFiles: (files) => set({ files }),
@@ -100,6 +103,7 @@ export const useFileStore = create<FileState>()(
       setUploaderOpen: (isUploaderOpen) => set({ isUploaderOpen }),
       setPreviewFile: (previewFile) => set({ previewFile }),
       setDetailsFile: (detailsFile) => set({ detailsFile }),
+      setPreviwerOpen: (isPreviwerOpen) => set({ isPreviwerOpen }),
     }),
     {
       name: "slide-back-file-store",

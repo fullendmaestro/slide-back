@@ -56,6 +56,7 @@ export default function GalleryContent() {
     isUploaderOpen,
     previewFile,
     detailsFile,
+    isPreviwerOpen,
     toggleFileSelection,
     selectAllFiles,
     deselectAllFiles,
@@ -66,6 +67,7 @@ export default function GalleryContent() {
     setUploaderOpen,
     setPreviewFile,
     setDetailsFile,
+    setPreviwerOpen,
   } = useFileStore();
 
   // Get state from album store
@@ -542,12 +544,7 @@ export default function GalleryContent() {
                         className="text-right px-2 sm:px-4"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <FileActions
-                          file={file}
-                          onDelete={() => handleDeleteFile(file.id)}
-                          onAddToAlbum={handleAddToAlbum}
-                          onViewDetails={handleViewDetails}
-                        />
+                        <FileActions file={file} />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -587,12 +584,14 @@ export default function GalleryContent() {
       />
 
       {/* File Preview Modal */}
-      <FilePreviewModal
-        isOpen={!!previewFile}
-        onClose={() => setPreviewFile(null)}
-        initialFile={previewFile!}
-        files={filteredAndSortedFiles}
-      />
+      {isPreviwerOpen && (
+        <FilePreviewModal
+          isOpen={isPreviwerOpen}
+          onClose={() => setPreviwerOpen(false)}
+          initialFile={previewFile!}
+          files={filteredAndSortedFiles}
+        />
+      )}
 
       {/* File Details Dialog */}
       <FileDetailsDialog
