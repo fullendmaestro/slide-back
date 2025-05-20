@@ -56,13 +56,11 @@ export async function POST(request: Request) {
 
     // If AI review is enabled, filter results using AI
     if (aiReview && results.length > 0) {
-      results = await reviewContentWithAI(query, results);
+      const aiReviewedresults = await reviewContentWithAI(query, results);
+      return NextResponse.json(aiReviewedresults);
     }
 
-    let filesQuery = db.select().from(file);
-    filesQuery.where(eq(file.userId, session?.user?.id));
-    results = await filesQuery;
-    console.log("memory results", results);
+    // console.log("memory results", results);
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error searching memories:", error);

@@ -1,8 +1,9 @@
-import { embed, generateText } from "ai";
+import { embed, generateText, generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 import { db } from "@/lib/db";
 import { file, albumFile } from "@/lib/db/schema";
 import { eq, and, between, inArray, sql } from "drizzle-orm";
+import { z } from "zod";
 
 // Define the Gemini embedding model
 const embeddingModel = google.textEmbeddingModel("text-embedding-004", {
@@ -136,9 +137,9 @@ export async function reviewContentWithAI(
   results: any[]
 ): Promise<any[]> {
   try {
+    console.log("Reviewing content with AI:", query);
     if (results.length === 0) return results;
 
-    // Prepare a batch of results for review (to minimize API calls)
     const batchSize = 10;
     const reviewedResults: any[] = [];
 
@@ -150,13 +151,13 @@ export async function reviewContentWithAI(
         I'm searching for memories related to: "${query}"
         
         Below are some potential matches. For each item, evaluate if it's truly relevant to my query.
-        Return only the IDs of items that are relevant, separated by commas.
+        Return only the IDs of items that are relevant, as an array of strings.
         
         ${batch
           .map(
             (item, index) => `
           Item ${index + 1} (ID: ${item.id}):
-          - Description: ${item.description || "No description"}
+          - Description: ${item.aiDescription || "No description"}
           - Type: ${item.type}
           - Date: ${item.dateTaken || item.dateCreated || "Unknown date"}
           - Tags: ${item.tags || "No tags"}
@@ -165,17 +166,18 @@ export async function reviewContentWithAI(
           .join("\n")}
       `;
 
-      const { text } = await generateText({
+      // Use generateObject for structured output
+      const { object } = await generateObject({
         model: google("gemini-1.5-flash-002"),
+        schema: z.object({
+          relevantIds: z.array(z.string()),
+        }),
         prompt,
-        temperature: 0.2, // Low temperature for more deterministic results
+        temperature: 0.2,
       });
+      console.log("AI review structured response:", object);
 
-      // Parse the response to get relevant IDs
-      const relevantIds = text
-        .split(",")
-        .map((id) => id.trim())
-        .filter((id) => id.length > 0);
+      const relevantIds = object.relevantIds;
 
       // Filter the batch to only include relevant items
       const relevantItems = batch.filter((item) =>
@@ -184,10 +186,11 @@ export async function reviewContentWithAI(
       reviewedResults.push(...relevantItems);
     }
 
+    console.log("Reviewed results:", reviewedResults);
+
     return reviewedResults;
   } catch (error) {
     console.error("Error reviewing content with AI:", error);
-    // Fall back to the original results if AI review fails
     return results;
   }
 }
