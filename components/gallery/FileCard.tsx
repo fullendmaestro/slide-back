@@ -179,12 +179,7 @@ export default function FileCard({
             )}
             onClick={(e) => e.stopPropagation()}
           >
-            <FileActions
-              file={file}
-              onDelete={() => onDelete(file.id)}
-              onAddToAlbum={onAddToAlbum || (() => {})}
-              onViewDetails={onViewDetails || (() => {})}
-            />
+            <FileActions file={file} />
           </div>
 
           {/* Favorite indicator if file is favorited */}
