@@ -15,27 +15,20 @@ import { useSession } from "next-auth/react";
 import Step1Prompt from "./Step1Prompt";
 import Step2DateRange from "./Step2DateRange";
 import Step3Album from "./Step3Album";
-import Step4Music from "./Step4Music";
-import Step5Options from "./Step5Options";
+import Step5Options from "./Step4Options";
 import { useMemoryStore } from "@/lib/stores/memoryStore";
-import { useMemorySearch } from "@/lib/hooks/useMemory";
 import { useAlbums } from "@/lib/hooks/useAlbums";
-import Step6SlideBack from "./Step6SlideBack";
+import Step6SlideBack from "./Step5SlideBack";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5;
 
 const stepTitles = [
   "Describe Your Memory",
   "Set Date Range",
   "Choose Albums",
-  "Background Music",
   "Additional Options",
   "Slide BAck",
 ];
-
-interface MemoryWizardFormProps {
-  onSubmitForm: () => void;
-}
 
 export default function MemoryWizardForm() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -124,6 +117,7 @@ export default function MemoryWizardForm() {
         description:
           error instanceof Error ? error.message : "Please try again.",
       });
+      setLoading(false);
     }
   };
 
@@ -272,9 +266,8 @@ export default function MemoryWizardForm() {
                 {currentStep === 3 && (
                   <Step3Album form={form} albums={albums || []} />
                 )}
-                {currentStep === 4 && <Step4Music form={form} />}
-                {currentStep === 5 && <Step5Options form={form} />}
-                {currentStep === 6 && (
+                {currentStep === 4 && <Step5Options form={form} />}
+                {currentStep === 5 && (
                   <Step6SlideBack form={form} albums={albums || []} />
                 )}
               </div>

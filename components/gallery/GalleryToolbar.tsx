@@ -233,10 +233,6 @@ export default function GalleryToolbar({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" size="sm">
-              <Filter className="mr-2 h-4 w-4" /> Filter
-            </Button>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="ml-auto sm:ml-0">

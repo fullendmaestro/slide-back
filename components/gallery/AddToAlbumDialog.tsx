@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { UserFile } from "@/lib/constants";
+import type { File } from "@/lib/db/schema";
 import {
   useAlbums,
   useAddFilesToAlbum,
@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 interface AddToAlbumDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  files: UserFile[];
+  files: File[];
 }
 
 export default function AddToAlbumDialog({

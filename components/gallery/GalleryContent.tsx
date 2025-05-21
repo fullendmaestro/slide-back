@@ -57,6 +57,7 @@ export default function GalleryContent() {
     previewFile,
     detailsFile,
     isPreviwerOpen,
+    detailsOpen,
     toggleFileSelection,
     selectAllFiles,
     deselectAllFiles,
@@ -68,6 +69,7 @@ export default function GalleryContent() {
     setPreviewFile,
     setDetailsFile,
     setPreviwerOpen,
+    setDetailsOpen,
   } = useFileStore();
 
   // Get state from album store
@@ -597,8 +599,8 @@ export default function GalleryContent() {
       {/* File Details Dialog */}
       <FileDetailsDialog
         file={detailsFile}
-        isOpen={!!detailsFile}
-        onClose={() => setDetailsFile(null)}
+        isOpen={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
       />
 
       {/* Add to Album Dialog */}
