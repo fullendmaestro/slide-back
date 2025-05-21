@@ -129,15 +129,10 @@ export default function FileActions({ file }: FileActionsProps) {
 
   // Update: Local handlers for Add to Album and View Details
   const handleAddToAlbum = () => {
-    useCallback(
-      (file: File) => {
-        // Select just this file and open the add to album dialog
-        deselectAllFiles();
-        toggleFileSelection(file.id);
-        setAddToAlbumOpen(true);
-      },
-      [deselectAllFiles, toggleFileSelection, setAddToAlbumOpen]
-    );
+    // Select just this file and open the add to album dialog
+    deselectAllFiles();
+    toggleFileSelection(file.id);
+    setAddToAlbumOpen(true);
   };
 
   const handleViewDetails = () => {
@@ -152,7 +147,7 @@ export default function FileActions({ file }: FileActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <Button variant="ghost" className="h-8 w-8 p-0 bg-primary">
           <span className="sr-only">Open menu</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
