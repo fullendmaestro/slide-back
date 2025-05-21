@@ -47,6 +47,7 @@ export default function FileContextMenu({
     setDetailsFile,
     setPreviewFile,
     setPreviwerOpen,
+    setDetailsOpen,
   } = useFileStore();
 
   const { setAddToAlbumOpen } = useAlbumStore();
@@ -75,6 +76,7 @@ export default function FileContextMenu({
   };
 
   const handleDownload = async () => {
+    console.log("file", file);
     if (file.url) {
       try {
         const response = await fetch(file.url, { mode: "cors" });
@@ -131,19 +133,15 @@ export default function FileContextMenu({
 
   // Update: Local handlers for Add to Album and View Details
   const handleAddToAlbum = () => {
-    useCallback(
-      (file: File) => {
-        // Select just this file and open the add to album dialog
-        deselectAllFiles();
-        toggleFileSelection(file.id);
-        setAddToAlbumOpen(true);
-      },
-      [deselectAllFiles, toggleFileSelection, setAddToAlbumOpen]
-    );
+    // Select just this file and open the add to album dialog
+    deselectAllFiles();
+    toggleFileSelection(file.id);
+    setAddToAlbumOpen(true);
   };
 
   const handleViewDetails = () => {
     setDetailsFile(file);
+    setDetailsOpen(true);
   };
 
   const handleOpenPreview = () => {
