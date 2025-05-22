@@ -8,9 +8,9 @@ interface SiteLayoutProps {
 
 export default function SiteLayout({ children }: SiteLayoutProps) {
   return (
-    <div className="flex flex-col space-between h-screen bg-background text-foreground">
+    <div className="flex flex-col h-[100dvh] w-[100dvw] bg-background text-foreground">
       <Header />
-      <main className="flex-grow container">{children}</main>
+      <main className="flex-grow overflow-y-scroll">{children}</main>
       <Footer />
     </div>
   );
