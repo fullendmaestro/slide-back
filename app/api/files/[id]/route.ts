@@ -43,6 +43,8 @@ const UpdateFileSchema = z.object({
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
   isFavorite: z.boolean().optional(),
+  dateCreated: z.coerce.date().optional(),
+  lastModified: z.coerce.date().optional(),
 });
 
 // PATCH to update a file

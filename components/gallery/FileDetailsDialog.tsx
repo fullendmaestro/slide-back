@@ -20,6 +20,13 @@ import { format } from "date-fns";
 import FileDisplayIcon from "@/components/files/FileDisplayIcon";
 import Image from "next/image";
 import { formatBytes } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Pencil } from "lucide-react";
 
 interface FileDetailsDialogProps {
   file: File | null;
@@ -35,6 +42,11 @@ export default function FileDetailsDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [dateCreated, setDateCreated] = useState<Date | null>(null);
+  const [lastModified, setLastModified] = useState<Date | null>(null);
+  const [editingDateField, setEditingDateField] = useState<
+    "created" | "modified" | null
+  >(null);
 
   const updateFileMutation = useUpdateFile();
   const updateDescriptionMutation = useUpdateFileDescription();
@@ -45,7 +57,10 @@ export default function FileDetailsDialog({
       console.log("File details:", file);
       setName(file.name || "");
       setDescription(file.aiDescription || "");
+      setDateCreated(file.dateCreated ? new Date(file.dateCreated) : null);
+      setLastModified(file.lastModified ? new Date(file.lastModified) : null);
       setIsEditing(false);
+      setEditingDateField(null);
     }
   }, [file]);
 
@@ -67,10 +82,37 @@ export default function FileDetailsDialog({
 
       // Update description if changed
       if (description !== file.description) {
-        console.log("Updating description:", file.id, description);
         await updateDescriptionMutation.mutateAsync({
           fileId: file.id,
           description,
+        });
+      }
+
+      // Update dateCreated if changed
+      if (
+        dateCreated &&
+        (!file.dateCreated ||
+          new Date(file.dateCreated).getTime() !== dateCreated.getTime())
+      ) {
+        await updateFileMutation.mutateAsync({
+          updates: {
+            id: file.id,
+            dateCreated: dateCreated,
+          },
+        });
+      }
+
+      // Update lastModified if changed
+      if (
+        lastModified &&
+        (!file.lastModified ||
+          new Date(file.lastModified).getTime() !== lastModified.getTime())
+      ) {
+        await updateFileMutation.mutateAsync({
+          updates: {
+            id: file.id,
+            lastModified: lastModified,
+          },
         });
       }
 
@@ -107,7 +149,7 @@ export default function FileDetailsDialog({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="py-6 space-y-6">
+        <div className="py-6 px-5 space-y-6">
           {/* File preview */}
           <div className="flex justify-center">
             {file.type === "image" && file.url ? (
@@ -170,11 +212,81 @@ export default function FileDetailsDialog({
                 <dt className="text-muted-foreground">Size</dt>
                 <dd>{formatBytes(file.size)}</dd>
 
-                <dt className="text-muted-foreground">Created</dt>
-                <dd>{formatDate(file.dateCreated)}</dd>
+                <dt className="text-muted-foreground flex items-center gap-1">
+                  Created
+                  <Popover
+                    open={editingDateField === "created"}
+                    onOpenChange={(open) =>
+                      setEditingDateField(open ? "created" : null)
+                    }
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 ml-1"
+                        aria-label="Edit created date"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingDateField("created");
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={dateCreated ?? undefined}
+                        onSelect={(date) => {
+                          setDateCreated(date ?? null);
+                          setIsEditing(true);
+                          setEditingDateField(null);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </dt>
+                <dd>{dateCreated ? formatDate(dateCreated) : "N/A"}</dd>
 
-                <dt className="text-muted-foreground">Modified</dt>
-                <dd>{formatDate(file.lastModified)}</dd>
+                <dt className="text-muted-foreground flex items-center gap-1">
+                  Modified
+                  <Popover
+                    open={editingDateField === "modified"}
+                    onOpenChange={(open) =>
+                      setEditingDateField(open ? "modified" : null)
+                    }
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 ml-1"
+                        aria-label="Edit modified date"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingDateField("modified");
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={lastModified ?? undefined}
+                        onSelect={(date) => {
+                          setLastModified(date ?? null);
+                          setIsEditing(true);
+                          setEditingDateField(null);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </dt>
+                <dd>{lastModified ? formatDate(lastModified) : "N/A"}</dd>
 
                 {file.dateTaken && (
                   <>
