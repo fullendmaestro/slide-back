@@ -61,7 +61,7 @@ export default function MemoryWizardForm() {
         trackId: undefined,
         source: "default",
       },
-      options: { photo: true, video: false, aiReview: false },
+      options: { photo: true, video: false, aiReview: true },
     },
     mode: "onChange",
   });

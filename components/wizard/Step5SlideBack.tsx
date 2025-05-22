@@ -34,99 +34,105 @@ export default function Step6SlideBack({ form, albums }: Step6SlideBackProps) {
           Please review your settings before continuing.
         </FormDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Prompt</h3>
-          <p className="text-base text-muted-foreground">
-            {values.prompt || (
-              <span className="italic text-muted-foreground">
-                No prompt provided.
-              </span>
-            )}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Date Range</h3>
-          <p className="text-base text-muted-foreground">
-            {formatDate(values.dateRange?.from)} &rarr;{" "}
-            {formatDate(values.dateRange?.to)}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Albums</h3>
-          <p className="text-base text-muted-foreground">
-            {values.albums && values.albums.length > 0 ? (
-              // values.albums.join(", ")
-              <ScrollArea className="w-full max-h-24 mt-2">
-                <div className="flex flex-wrap gap-2 p-1">
-                  {values.albums.map((albumId) => {
-                    const album = albums.find((a) => a.id === albumId);
-                    if (!album) return null;
-
-                    return (
-                      <Badge
-                        key={albumId}
-                        variant="secondary"
-                        className="flex items-center gap-1 py-1 px-3"
-                      >
-                        {album.name}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            ) : (
-              <span className="italic text-muted-foreground">All albums</span>
-            )}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium flex items-center gap-2">
-            <Music className="h-4 w-4" /> Music
-          </h3>
-          <p className="text-base text-muted-foreground">
-            {values.music?.enabled
-              ? `Enabled (${
-                  values.music.source === "user"
-                    ? "Your Upload"
-                    : "Default Track"
-                })`
-              : "Disabled"}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Media Types</h3>
-          <div className="flex gap-4 text-base text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <ImageIcon className="h-4 w-4" />
-              {values.options?.photo ? (
-                "Photos"
-              ) : (
-                <span className="line-through">Photos</span>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          {/* Prompt */}
+          <div>
+            <h3 className="text-sm font-medium mb-1">Prompt</h3>
+            <div className="text-base text-muted-foreground truncate">
+              {values.prompt || (
+                <span className="italic text-muted-foreground">
+                  No prompt provided.
+                </span>
               )}
-            </span>
-            <span className="flex items-center gap-1">
-              <Video className="h-4 w-4" />
-              {values.options?.video ? (
-                "Videos"
-              ) : (
-                <span className="line-through">Videos</span>
-              )}
-            </span>
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium flex items-center gap-2">
-            <Sparkles className="h-4 w-4" /> AI Enhancement
-          </h3>
-          <p className="text-base text-muted-foreground">
-            {values.options?.aiReview ? "Enabled" : "Disabled"}
-          </p>
+          {/* Date Range */}
+          <div>
+            <h3 className="text-sm font-medium mb-1">Date Range</h3>
+            <div className="text-base text-muted-foreground">
+              {formatDate(values.dateRange?.from)} &rarr;{" "}
+              {formatDate(values.dateRange?.to)}
+            </div>
+          </div>
+
+          {/* Albums */}
+          <div>
+            <h3 className="text-sm font-medium mb-1">Albums</h3>
+            <div className="text-base text-muted-foreground">
+              {values.albums && values.albums.length > 0 ? (
+                <ScrollArea className="w-full max-h-16">
+                  <div className="flex flex-wrap gap-2">
+                    {values.albums.map((albumId) => {
+                      const album = albums.find((a) => a.id === albumId);
+                      if (!album) return null;
+                      return (
+                        <Badge
+                          key={albumId}
+                          variant="secondary"
+                          className="flex items-center gap-1 py-0.5 px-2 text-xs"
+                        >
+                          {album.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <span className="italic text-muted-foreground">All albums</span>
+              )}
+            </div>
+          </div>
+
+          {/* Music */}
+          <div>
+            <h3 className="text-sm font-medium flex items-center gap-2 mb-1">
+              <Music className="h-4 w-4" /> Music
+            </h3>
+            <div className="text-base text-muted-foreground">
+              {values.music?.enabled
+                ? `Enabled (${
+                    values.music.source === "user"
+                      ? "Your Upload"
+                      : "Default Track"
+                  })`
+                : "Disabled"}
+            </div>
+          </div>
+
+          {/* Media Types */}
+          <div>
+            <h3 className="text-sm font-medium mb-1">Media Types</h3>
+            <div className="flex gap-4 text-base text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <ImageIcon className="h-4 w-4" />
+                {values.options?.photo ? (
+                  "Photos"
+                ) : (
+                  <span className="line-through">Photos</span>
+                )}
+              </span>
+              <span className="flex items-center gap-1">
+                <Video className="h-4 w-4" />
+                {values.options?.video ? (
+                  "Videos"
+                ) : (
+                  <span className="line-through">Videos</span>
+                )}
+              </span>
+            </div>
+          </div>
+
+          {/* AI Enhancement */}
+          <div>
+            <h3 className="text-sm font-medium flex items-center gap-2 mb-1">
+              <Sparkles className="h-4 w-4" /> AI Enhancement
+            </h3>
+            <div className="text-base text-muted-foreground">
+              {values.options?.aiReview ? "Enabled" : "Disabled"}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
