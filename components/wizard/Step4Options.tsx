@@ -1,7 +1,5 @@
 "use client";
 
-import type { UseFormReturn } from "react-hook-form";
-import type { MemoryWizardData } from "@/lib/schema";
 import {
   FormControl,
   FormField,

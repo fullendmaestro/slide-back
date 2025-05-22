@@ -39,7 +39,7 @@ export const memoryWizardSchema = z.object({
     .object({
       photo: z.boolean().default(true),
       video: z.boolean().default(false),
-      aiReview: z.boolean().default(false),
+      aiReview: z.boolean().default(true),
     })
     .refine((data) => data.photo || data.video, {
       message: "Please select at least one file source (photos or videos).",
