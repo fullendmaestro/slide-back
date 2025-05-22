@@ -45,6 +45,7 @@ export default function FileActions({ file }: FileActionsProps) {
     setDetailsFile,
     setPreviewFile,
     setPreviwerOpen,
+    setDetailsOpen,
   } = useFileStore();
 
   const { setAddToAlbumOpen } = useAlbumStore();
@@ -73,6 +74,7 @@ export default function FileActions({ file }: FileActionsProps) {
   };
 
   const handleDownload = async () => {
+    console.log("file", file);
     if (file.url) {
       try {
         const response = await fetch(file.url, { mode: "cors" });
@@ -117,7 +119,7 @@ export default function FileActions({ file }: FileActionsProps) {
           url: file.url,
         })
         .then(() => {
-          toast.success("Shared successfully");
+          toast.success("Sharing opend successfully");
         })
         .catch((error) => {
           toast.error("Sharing failed", { description: error.message });
@@ -137,6 +139,7 @@ export default function FileActions({ file }: FileActionsProps) {
 
   const handleViewDetails = () => {
     setDetailsFile(file);
+    setDetailsOpen(true);
   };
 
   const handleOpenPreview = () => {
