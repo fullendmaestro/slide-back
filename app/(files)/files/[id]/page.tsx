@@ -1,39 +1,34 @@
-"use client";
-import Image from "next/image";
-import { useEffect, useState, use } from "react";
+import { notFound } from "next/navigation";
+import { auth } from "@/app/(auth)/auth";
+import { db } from "@/lib/db";
+import { file } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import FileDetailView from "@/components/files/FileDetailView";
 
-export default function FileDetailPage(props: {
-  params: Promise<{ Id: string }>;
+export default async function FilePage(props: {
+  params: Promise<{ id: string }>;
 }) {
-  const params = use(props.params);
-  const [file, setFile] = useState({});
+  const params = await props.params;
+  const session = await auth();
 
-  const getfile = async () => {
-    const response = await fetch(`/api/files/${params.Id}`);
-    setFile(response);
-    return;
-  };
+  if (!session?.user?.id) {
+    return notFound();
+  }
 
-  useEffect(() => {}, []);
+  const fileId = params.id;
 
-  useEffect(() => {
-    console.log("file", file);
-  }, [file]);
+  // Fetch the file
+  const result = await db
+    .select()
+    .from(file)
+    .where(and(eq(file.id, fileId), eq(file.userId, session.user.id)))
+    .limit(1);
 
-  return (
-    <div className="relative flex justify-center items-center align-center w-full h-full">
-      {/* <Image
-        className="object-contain"
-        // width={file.width}
-        // height={file.height}
-        fill
-        src={file.url || "/placeholder.svg"}
-        // alt={`Image ${file.public_id}`}
-        // style={imgStyles}
-        // version={version}
-        // placeholderStyle="dark"
-        // {...transformations}
-      /> */}
-    </div>
-  );
+  if (result.length === 0) {
+    return notFound();
+  }
+
+  const fileData = result[0];
+
+  return <FileDetailView file={fileData} />;
 }
