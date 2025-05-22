@@ -352,46 +352,6 @@ export default function GalleryContent() {
     return filteredAndSortedFiles.filter((file) => selectedFiles.has(file.id));
   }, [filteredAndSortedFiles, selectedFiles]);
 
-  const onDragStart = (e: React.DragEvent<HTMLDivElement>, fileId: string) => {
-    e.dataTransfer.setData("fileId", fileId);
-    const draggedFile = files.find((f) => f.id === fileId);
-    if (draggedFile) {
-      // toast({title: `Dragging "${draggedFile.name}"`}); // Optional: reduce toast verbosity
-    }
-  };
-
-  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const targetElement = e.currentTarget as HTMLDivElement;
-    if (targetElement.classList.contains("drop-target-folder")) {
-      targetElement.classList.add("bg-primary/10", "ring-2", "ring-primary");
-    }
-  };
-
-  const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    const targetElement = e.currentTarget as HTMLDivElement;
-    targetElement.classList.remove("bg-primary/10", "ring-2", "ring-primary");
-  };
-
-  const onDropToFolder = (
-    e: React.DragEvent<HTMLDivElement>,
-    targetAlbumId: string
-  ) => {
-    e.preventDefault();
-    onDragLeave(e);
-    const draggedFileId = e.dataTransfer.getData("fileId");
-
-    const draggedFile = files.find((f) => f.id === draggedFileId);
-
-    if (draggedFile && draggedFileId !== targetAlbumId) {
-      // Add the file to the album
-      addFilesToAlbumMutation.mutate({
-        albumId: targetAlbumId,
-        fileIds: [draggedFileId],
-      });
-    }
-  };
-
   return (
     <div className="flex flex-col h-full">
       <GalleryToolbar
@@ -569,13 +529,8 @@ export default function GalleryContent() {
                   file={file}
                   isSelected={selectedFiles.has(file.id)}
                   onSelect={handleSelectFile}
-                  onDelete={() => handleDeleteFile(file.id)}
                   onDoubleClick={handleFileDoubleClick}
-                  onRightClick={handleFileRightClick}
                   viewMode={viewMode}
-                  onDragStart={handleFileDragStart}
-                  onAddToAlbum={handleAddToAlbum}
-                  onViewDetails={handleViewDetails}
                 />
               ))}
             </div>

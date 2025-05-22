@@ -16,26 +16,16 @@ interface FileCardProps {
   file: File;
   isSelected: boolean;
   onSelect: (fileId: string, checked: boolean) => void;
-  onDelete: (fileId: string) => void;
   onDoubleClick: (file: File) => void;
-  onRightClick: (e: React.MouseEvent, file: File) => void;
   viewMode: "grid-sm" | "grid-md" | "grid-lg";
-  onDragStart?: (e: React.DragEvent<HTMLDivElement>, file: File) => void;
-  onAddToAlbum?: (file: File) => void;
-  onViewDetails?: (file: File) => void;
 }
 
 export default function FileCard({
   file,
   isSelected,
   onSelect,
-  onDelete,
   onDoubleClick,
-  onRightClick,
   viewMode,
-  onDragStart,
-  onAddToAlbum,
-  onViewDetails,
 }: FileCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -53,41 +43,8 @@ export default function FileCard({
     "grid-lg": "h-20 w-20",
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    // Set data for the drag operation
-    e.dataTransfer.setData(
-      "application/json",
-      JSON.stringify({
-        type: "file",
-        id: file.id,
-        name: file.name,
-      })
-    );
-
-    // Create a custom drag image if it's an image file
-    if (isImageFile && file.url && typeof window !== "undefined") {
-      const img = new window.Image();
-      img.src = file.url;
-      img.width = 100;
-      img.height = 100;
-      e.dataTransfer.setDragImage(img, 50, 50);
-    }
-
-    setIsDragging(true);
-    if (onDragStart) onDragStart(e, file);
-  };
-
   const handleDragEnd = () => {
     setIsDragging(false);
-  };
-
-  // Handle right-click event
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default browser context menu
-    e.stopPropagation(); // Stop event propagation
-    if (onRightClick) {
-      onRightClick(e, file);
-    }
   };
 
   return (
