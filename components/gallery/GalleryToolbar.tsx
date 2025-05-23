@@ -174,9 +174,9 @@ export default function GalleryToolbar({
               </Label>
             </div>
 
-            <Button variant="ghost" size="sm" disabled={totalMediaFiles === 0}>
+            {/* <Button variant="ghost" size="sm" disabled={totalMediaFiles === 0}>
               <Play className="mr-2 h-4 w-4" /> Slideshow
-            </Button>
+            </Button> */}
 
             <Button variant="ghost" size="sm" onClick={onUploadClick}>
               <Upload className="mr-2 h-4 w-4" /> Upload

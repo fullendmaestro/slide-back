@@ -344,65 +344,62 @@ export default function AlbumSidebar() {
               ) : (
                 <AnimatePresence>
                   {albums.map((album) => (
-                    <SidebarMenuItem key={album.id}>
+                    <SidebarMenuItem key={album.id} className="relative group/album-item">
                       <SidebarMenuButton
-                        asChild
-                        isActive={
-                          currentView === "album" && currentAlbumId === album.id
-                        }
+                        isActive={currentView === "album" && currentAlbumId === album.id}
                         className={cn(
                           dropTargetId === album.id &&
                             "bg-primary/10 ring-2 ring-primary"
                         )}
+                        onClick={() => {
+                          setCurrentView("album");
+                          setCurrentAlbum(album.id);
+                        }}
                         onDragOver={(e) => handleDragOver(e, album.id)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, album.id)}
                       >
-                        <button
-                          onClick={() => {
-                            setCurrentView("album");
-                            setCurrentAlbum(album.id);
-                          }}
-                        >
-                          <Folder
-                            className={cn(
-                              currentView === "album" &&
-                                currentAlbumId === album.id &&
-                                "fill-primary/20"
-                            )}
-                          />
-                          <span>{album.name}</span>
-                        </button>
+                        <Folder
+                          className={cn(
+                            "h-5 w-5", // <-- Add this for consistent icon size
+                            currentView === "album" &&
+                              currentAlbumId === album.id &&
+                              "fill-primary/20"
+                          )}
+                        />
+                        <span className="truncate">{album.name}</span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              tabIndex={-1}
+                              className="ml-auto h-6 w-6 opacity-0 group-hover/album-item:opacity-100 focus:opacity-100 absolute right-1 top-1/2 -translate-y-1/2"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditingAlbumId(album.id);
+                                setRenamingAlbumName(album.name);
+                              }}
+                            >
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleDeleteAlbum(album.id, album.name)
+                              }
+                              className="text-destructive focus:text-destructive"
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </SidebarMenuButton>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/album-item:opacity-100 focus:opacity-100 group-data-[collapsible=icon]:hidden"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditingAlbumId(album.id);
-                              setRenamingAlbumName(album.name);
-                            }}
-                          >
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleDeleteAlbum(album.id, album.name)
-                            }
-                            className="text-destructive focus:text-destructive"
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </SidebarMenuItem>
                   ))}
                 </AnimatePresence>

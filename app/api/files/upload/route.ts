@@ -55,7 +55,6 @@ export async function POST(request: Request) {
     const timestamp = Date.now();
     const fileExtension = uploadedFile.name.split(".").pop();
     const uniqueFilename = `${session.user.id}/${timestamp}-${uploadedFile.name}`;
-    console.log("uploadind...", uniqueFilename, uploadedFile);
 
     // Upload to Vercel Blob
     const blob = await put(uniqueFilename, uploadedFile, {

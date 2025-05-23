@@ -17,7 +17,6 @@ import { signOut } from "next-auth/react";
 
 export function UserAvatar() {
   const { data: session } = useSession();
-  console.log("session user", session?.user);
   const router = useRouter();
 
   if (!session?.user) {

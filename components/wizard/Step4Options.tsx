@@ -95,8 +95,7 @@ export default function Step5Options({ form }: Step5OptionsProps) {
                     <Sparkles className="mr-2 h-5 w-5 text-primary" /> AI Review
                   </FormLabel>
                   <FormDescription>
-                    Use AI to review search results for accuracy and relevance
-                    to your prompt.
+                    Disabling this may return inaccurate results.
                   </FormDescription>
                 </div>
               </FormItem>

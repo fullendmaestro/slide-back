@@ -68,6 +68,8 @@ export default function FileUploader({ isOpen, onClose }: FileUploaderProps) {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const cancelRef = useRef<boolean>(false);
 
+  const { setDetailsFile, setDetailsOpen } = useFileStore();
+
   const { uploadFile } = useUploadFile();
   const addFiles = useFileStore((state) => state.addFiles);
 
@@ -391,7 +393,18 @@ export default function FileUploader({ isOpen, onClose }: FileUploaderProps) {
                               className="text-right px-2 sm:px-4"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <FileActions file={file} />
+                              {/* <FileActions file={file} /> */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="ml-2"
+                                onClick={() => {
+                                  setDetailsFile(file);
+                                  setDetailsOpen(true);
+                                }}
+                              >
+                                Details
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}

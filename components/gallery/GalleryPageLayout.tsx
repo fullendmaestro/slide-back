@@ -12,10 +12,25 @@ import {
 import AlbumSidebar from "@/components/gallery/AlbumSidebar";
 import GalleryContent from "@/components/gallery/GalleryContent";
 import { Button } from "../ui/button";
-import { Settings, UserCircle } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "../profile/user-avatar";
 
 export default function GalleryPageLayout() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
   return (
     <SidebarProvider defaultOpen>
       <Sidebar
@@ -23,13 +38,29 @@ export default function GalleryPageLayout() {
         collapsible="icon"
         className="border-r border-sidebar-border"
       >
-        <SidebarHeader className="p-4 items-center flex justify-between">
+        <SidebarHeader className="p-4 items-center flex flex-row gap-2">
+          {/* Sidebar close trigger on the left */}
+          <SidebarTrigger>
+            <span className="sr-only">Close sidebar</span>
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </SidebarTrigger>
           <Link href="/">
-            <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+            <h2 className="text-xl font-semibold text-sidebar-foreground">
               Slide Back
             </h2>
           </Link>
-          {/* <SidebarTrigger className="group-data-[collapsible=icon]:hidden" /> */}
         </SidebarHeader>
         <SidebarContent className="p-0">
           <AlbumSidebar />
@@ -39,19 +70,53 @@ export default function GalleryPageLayout() {
             variant="ghost"
             className="w-full justify-start group-data-[collapsible=icon]:justify-center"
           >
-            <UserCircle className="h-5 w-5" />
-            <span className="group-data-[collapsible=icon]:hidden ml-2">
-              Profile
-            </span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start group-data-[collapsible=icon]:justify-center"
-          >
-            <Settings className="h-5 w-5" />
-            <span className="group-data-[collapsible=icon]:hidden ml-2">
-              Settings
-            </span>
+            {session?.user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center">
+                    <Avatar className="h-8 w-8 cursor-pointer">
+                      <AvatarImage
+                        src={session.user.image || ""}
+                        alt={session.user.name || "User"}
+                      />
+                      <AvatarFallback>
+                        {session.user.name?.charAt(0) ||
+                          session.user.email?.charAt(0) ||
+                          "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="group-data-[collapsible=icon]:hidden ml-2 truncate max-w-[120px]">
+                      {session?.user?.name || "User"}
+                    </span>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {session.user.name || "User"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session.user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push("/profile")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Profile Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </Button>
         </SidebarFooter>
       </Sidebar>
