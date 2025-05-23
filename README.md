@@ -112,6 +112,8 @@ pnpm run dev
 
 For more details on the project structure, tech stack, project architecture, etc, check out the [Docs.md](Docs.md) file
 
+![slider](https://github.com/user-attachments/assets/4a2c0ad1-9c0d-4a84-9dc4-2d60a2a6d1e6)
+
 ## License
 
 This project is protected under the [Apache License](http://www.apache.org/licenses/LICENSE-2.0/) License. For more details, refer to the [LICENSE](LICENSE) file.
