@@ -4,7 +4,7 @@
 
 ## Overview
 
-Slide Back is a memory gallery and slideshow app designed to help users revisit their cherished memories using AI. It organizes your media through an immersive experience, leveraging AI to accurately find memories related to your prompts.
+Slide Back is a memory gallery and slideshow app designed to help users revisit their cherished memories using AI. The gallery organizes your media through an immersive experience. And the slider create a slide show of your memories focusing on returning the most accurate and meaningful memories by leveraging advanced AI to surface moments that truly match your prompts.
 
 ## How it works
 
@@ -16,7 +16,11 @@ Describe the memories you want to revisit using natural language—for example, 
 
 ### Gallery
 
-Upload your photos and videos to the gallery. AI automatically generates descriptions for your media, which are used for semantic search. You can also edit these descriptions to add your own keywords, improving future search results and giving you more control over how your memories are found.
+Upload your photos and videos to the gallery. AI automatically generates descriptions for your media, which are used for semantic search. You can also edit these descriptions to add your own keywords (e.g name of persons and places), improving future search results and giving you more control over how your memories are found.
+
+## UI UX
+
+Slid back is developed mainly for desktop experience with context menu for performing actions. Howwever its will also works fine on mobile experience also.
 
 ## Features
 

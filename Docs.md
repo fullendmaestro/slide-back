@@ -1,3 +1,7 @@
+# DOCS
+
+The following serve as a complementary detail and documentation for the main readme file. So Content with brief description on the readme will be elaborate here inluding additional contents
+
 ## Project Structure
 
 - `/app`: Next.js App Router pages and API routes
@@ -26,3 +30,5 @@
 - **AI**: Google Gemini models via AI SDK
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: NextAuth.js
+
+**Optimized Images**: Ensure images are served at the optimal resolution for the display, reducing load times.
