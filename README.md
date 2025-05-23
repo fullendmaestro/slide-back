@@ -114,6 +114,12 @@ For more details on the project structure, tech stack, project architecture, etc
 
 ![slider](https://github.com/user-attachments/assets/4a2c0ad1-9c0d-4a84-9dc4-2d60a2a6d1e6)
 
+
+
+https://github.com/user-attachments/assets/4f64d76f-3ff8-4fb4-9ffb-b85dd140991e
+
+
+
 ## License
 
 This project is protected under the [Apache License](http://www.apache.org/licenses/LICENSE-2.0/) License. For more details, refer to the [LICENSE](LICENSE) file.
