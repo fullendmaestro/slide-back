@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -51,65 +51,65 @@ export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Only one ref for hiding controls
+  const controlsHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentSlideDuration =
     (slides[currentIndex]?.duration || DEFAULT_IMAGE_DURATION) / currentSpeed;
 
-  const resetControlsTimer = useCallback(() => {
-    if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
-    setControlsVisible(true);
-
-    // Only set timer to hide controls if playing and not manually paused,
-    // or if in fullscreen (where inactivity should always hide controls).
-    // If a popover is open (part of controls), don't hide. This check is implicitly handled by any interaction resetting the timer.
-    if (isPlaying) {
-      controlsTimerRef.current = setTimeout(() => {
-        // Check if a popover is active before hiding. This is a bit tricky
-        // as popover state is in PlayerControls. A simpler approach: any interaction resets.
-        // If a settings popover is open, user is interacting, so timer will be reset.
-        const isPopoverOpen = playerRef.current?.querySelector(
-          '[data-radix-popover-content][data-state="open"]'
-        );
-        if (!isPopoverOpen) {
-          setControlsVisible(false);
-        }
-      }, 3000); // Hide after 3 seconds of inactivity
+  // Utility to clear the hide timer
+  const clearControlsHideTimeout = useCallback(() => {
+    if (controlsHideTimeoutRef.current) {
+      clearTimeout(controlsHideTimeoutRef.current);
+      controlsHideTimeoutRef.current = null;
     }
-  }, [isPlaying]);
+  }, []);
 
+  // Show controls and reset the hide timer
+  const showControlsAndResetTimer = useCallback(() => {
+    setControlsVisible(true);
+    clearControlsHideTimeout();
+    controlsHideTimeoutRef.current = setTimeout(() => {
+      setControlsVisible(false);
+    }, 3000); // 3 seconds
+  }, [clearControlsHideTimeout]);
+
+  // Show controls on mouse, touch, or keyboard activity
   useEffect(() => {
-    resetControlsTimer();
+    showControlsAndResetTimer(); // Show on mount
+
+    const handleMouseMove = () => showControlsAndResetTimer();
+    const handleTouchStart = () => showControlsAndResetTimer();
+    const handleKeyDown = () => showControlsAndResetTimer();
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      if (controlsTimerRef.current) clearTimeout(controlsTimerRef.current);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("keydown", handleKeyDown);
+      clearControlsHideTimeout();
     };
-  }, [resetControlsTimer, currentIndex, isPlaying, isFullscreen]);
+  }, [showControlsAndResetTimer, clearControlsHideTimeout]);
 
   const handleNextSlide = useCallback(() => {
     if (!options.autoLoopEnabled && currentIndex === slides.length - 1) {
       setIsPlaying(false);
       setProgress(currentSlideDuration);
-      resetControlsTimer();
       return;
     }
     setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
     setProgress(0);
-    resetControlsTimer();
-  }, [
-    slides.length,
-    options.autoLoopEnabled,
-    currentIndex,
-    currentSlideDuration,
-    resetControlsTimer,
-  ]);
+  }, [slides.length, options.autoLoopEnabled, currentIndex, currentSlideDuration]);
 
   const handlePreviousSlide = () => {
     setCurrentIndex(
       (prevIndex) => (prevIndex - 1 + slides.length) % slides.length
     );
     setProgress(0);
-    resetControlsTimer();
   };
 
   useEffect(() => {
@@ -291,7 +291,6 @@ export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
     <div
       ref={playerRef}
       className="relative w-full h-full bg-neutral-900 overflow-hidden group"
-      onMouseMove={resetControlsTimer}
       onClick={(e) => {
         const target = e.target as HTMLElement;
         // If click is on background and controls are hidden, show them.
@@ -301,14 +300,14 @@ export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
           !target.closest("[data-radix-popover-content]") &&
           !target.closest(".carousel-button")
         ) {
-          if (!controlsVisible) resetControlsTimer();
+          if (!controlsVisible) showControlsAndResetTimer();
         }
       }}
       onContextMenu={(e) => {
         e.preventDefault(); // Prevent default context menu
-        resetControlsTimer(); // Treat as activity
+        showControlsAndResetTimer(); // Treat as activity
       }}
-      onTouchStart={resetControlsTimer} // Show controls on touch
+      onTouchStart={showControlsAndResetTimer} // Show controls on touch
     >
       {slides.map((slide, index) => (
         <Slide key={slide.id} slide={slide} isActive={index === currentIndex} />
@@ -317,39 +316,60 @@ export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
       <Button
         variant="ghost"
         size="icon"
-        onClick={handlePreviousSlide}
+        onClick={() => {
+          handlePreviousSlide();
+          showControlsAndResetTimer();
+        }}
         className={cn(carouselButtonClasses, "left-4 carousel-button")}
         aria-label="Previous slide"
-        // Prevent clicks on buttons from bubbling up to the main div's onClick if it were to toggle controls
-        // onClickCapture={(e) => e.stopPropagation()}
       >
         <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        onClick={handleNextSlide}
+        onClick={() => {
+          handleNextSlide();
+          showControlsAndResetTimer();
+        }}
         className={cn(carouselButtonClasses, "right-4 carousel-button")}
         aria-label="Next slide"
-        // onClickCapture={(e) => e.stopPropagation()}
       >
         <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
       </Button>
 
       <PlayerControls
         isPlaying={isPlaying}
-        onPlayPause={handlePlayPause}
-        onRestart={handleRestart}
+        onPlayPause={() => {
+          handlePlayPause();
+          showControlsAndResetTimer();
+        }}
+        onRestart={() => {
+          handleRestart();
+          showControlsAndResetTimer();
+        }}
         currentSpeed={currentSpeed}
-        onSpeedChange={handleSpeedChange}
+        onSpeedChange={(speed) => {
+          handleSpeedChange(speed);
+          showControlsAndResetTimer();
+        }}
         isFullscreen={isFullscreen}
-        onFullscreenToggle={handleFullscreenToggle}
+        onFullscreenToggle={() => {
+          handleFullscreenToggle();
+          showControlsAndResetTimer();
+        }}
         isVisible={controlsVisible}
         options={options}
         setOptions={setOptions}
-        onMusicSelect={handleMusicSelect}
+        onMusicSelect={(track) => {
+          handleMusicSelect(track);
+          showControlsAndResetTimer();
+        }}
         isMuted={isMuted}
-        onMuteToggle={handleMuteToggle}
+        onMuteToggle={() => {
+          handleMuteToggle();
+          showControlsAndResetTimer();
+        }}
       />
     </div>
   );
