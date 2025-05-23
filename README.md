@@ -112,13 +112,12 @@ pnpm run dev
 
 For more details on the project structure, tech stack, project architecture, etc, check out the [Docs.md](Docs.md) file
 
-![slider](https://github.com/user-attachments/assets/4a2c0ad1-9c0d-4a84-9dc4-2d60a2a6d1e6)
 
+## Demos
 
+https://github.com/user-attachments/assets/83096637-f524-4ada-aee2-db8f1e58a88b
 
 https://github.com/user-attachments/assets/4f64d76f-3ff8-4fb4-9ffb-b85dd140991e
-
-
 
 ## License
 
