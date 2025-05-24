@@ -1,17 +1,39 @@
 import Image from "next/image";
 import type { SlideData } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef } from "react";
 
 interface SlideProps {
   slide: SlideData;
   isActive: boolean;
+  onVideoEnded?: () => void; // Optional callback for video end
 }
 
-export default function Slide({ slide, isActive }: SlideProps) {
+export default function Slide({ slide, isActive, onVideoEnded }: SlideProps) {
   const baseTransition = "transition-opacity duration-1000 ease-in-out";
   const activeClass = isActive
     ? "opacity-100"
     : "opacity-0 pointer-events-none";
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (
+      slide.type === "video" &&
+      isActive &&
+      videoRef.current &&
+      onVideoEnded
+    ) {
+      const handleEnded = () => {
+        onVideoEnded();
+      };
+      const video = videoRef.current;
+      video.addEventListener("ended", handleEnded);
+      return () => {
+        video.removeEventListener("ended", handleEnded);
+      };
+    }
+  }, [slide.type, isActive, onVideoEnded]);
 
   if (slide.type === "image") {
     return (
@@ -28,9 +50,9 @@ export default function Slide({ slide, isActive }: SlideProps) {
           alt={slide.alt ? `${slide.alt} (background)` : "Slideshow background"}
           layout="fill"
           objectFit="cover"
-          className="absolute inset-0 w-full h-full filter blur-xl scale-110 z-0" // Increased blur and scale
-          priority={isActive} // Prioritize loading active images
-          sizes="100vw" // Background effectively covers viewport
+          className="absolute inset-0 w-full h-full filter blur-xl scale-110 z-0"
+          priority={isActive}
+          sizes="100vw"
           data-ai-hint={
             slide.dataAiHint
               ? `${slide.dataAiHint} background`
@@ -44,10 +66,10 @@ export default function Slide({ slide, isActive }: SlideProps) {
               src={slide.src}
               alt={slide.alt || "Slideshow image"}
               layout="fill"
-              objectFit="contain" // Preserves aspect ratio and fits within bounds
-              className="drop-shadow-2xl" // Added a shadow for better separation
+              objectFit="contain"
+              className="drop-shadow-2xl"
               priority={isActive}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw" // Generous sizes for contained image
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
               data-ai-hint={slide.dataAiHint || "gallery image"}
             />
           </div>
@@ -55,11 +77,11 @@ export default function Slide({ slide, isActive }: SlideProps) {
       </div>
     );
   }
-  // Placeholder for video or other types - can be expanded similarly
-  // For now, keeping video simple as it might have its own controls/behavior
+
   if (slide.type === "video") {
     return (
       <video
+        ref={videoRef}
         src={slide.src}
         className={cn(
           "absolute inset-0 w-full h-full object-contain z-10",
@@ -67,9 +89,9 @@ export default function Slide({ slide, isActive }: SlideProps) {
           activeClass
         )}
         autoPlay={isActive}
-        muted // Recommended for autoplay
-        loop={isActive} // Or based on a setting
-        playsInline // Good for mobile
+        muted
+        loop={false} // Only play once
+        playsInline
       />
     );
   }
