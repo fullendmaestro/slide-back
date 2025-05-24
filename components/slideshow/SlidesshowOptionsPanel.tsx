@@ -142,57 +142,6 @@ export default function SlideshowOptionsPanel({
                 </div>
               </div>
             ))}
-
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2 text-neutral-300">
-                Your Music
-              </h4>
-              <div className="relative mb-2">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-                <Input
-                  type="search"
-                  placeholder="Search your music..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 h-9 bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400 focus:ring-primary"
-                />
-              </div>
-              {filteredUserMusic.length > 0 ? (
-                <div className="space-y-1">
-                  {filteredUserMusic.map((track) => (
-                    <Button
-                      key={track.id}
-                      variant="ghost"
-                      className={`w-full justify-start h-auto p-2 text-left relative rounded-md transition-all duration-150 ease-in-out
-                        ${
-                          options.selectedMusicId === track.id
-                            ? "ring-1 ring-primary bg-primary/10 text-primary"
-                            : "hover:bg-neutral-700/80 text-neutral-300 hover:text-white"
-                        }`}
-                      onClick={() => handleMusicTrackSelect(track)}
-                    >
-                      <Music className="h-4 w-4 mr-2 shrink-0" />
-                      <span className="flex-grow truncate">{track.title}</span>
-                      {options.selectedMusicId === track.id && (
-                        <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-neutral-400 text-center py-2">
-                  {searchTerm
-                    ? "No matching music found."
-                    : "No music uploaded yet."}
-                </p>
-              )}
-              <Button
-                variant="outline"
-                className="w-full mt-3 text-neutral-300 border-neutral-600 hover:bg-neutral-700 hover:text-white"
-              >
-                <UploadCloud className="mr-2 h-4 w-4" /> Upload Music
-              </Button>
-            </div>
           </ScrollArea>
         </div>
       )}

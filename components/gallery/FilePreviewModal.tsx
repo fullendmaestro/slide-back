@@ -115,7 +115,7 @@ export default function FilePreviewModal({
                       className="object-contain w-full h-full rounded-lg bg-black"
                       style={{ background: "#000" }}
                     >
-                      Sorry, your browser doesn't support embedded videos.
+                      Sorry, your browser doesn&apos;t support embedded videos.
                     </video>
                   </div>
                 ) : (
