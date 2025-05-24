@@ -324,6 +324,11 @@ export default function SlideshowPlayer({
             key={slide.id}
             slide={slide}
             isActive={index === currentIndex}
+            onVideoEnded={
+              slide.type === "video" && index === currentIndex
+                ? handleNextSlide
+                : undefined
+            }
           />
         ))}
 
