@@ -28,7 +28,7 @@ export async function GET(request: Request) {
       });
 
       // Extract the files and filter by user ID
-      albumFiles
+      files = albumFiles
         .map((af) => af.file)
         .filter((f) => f.userId === session?.user?.id);
     } else if (favorites) {

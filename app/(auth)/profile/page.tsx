@@ -55,7 +55,7 @@ export default function ProfilePage() {
       console.log(state);
       updateSession();
     }
-  }, [state, updateSession]);
+  }, [state.status]);
 
   if (!session?.user) {
     return null;

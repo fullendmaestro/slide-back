@@ -137,10 +137,6 @@ export default function GalleryContent() {
     };
   }, [currentAlbumId, currentView, deselectAllFiles]);
 
-  const handleDeleteFile = (fileId: string) => {
-    deleteFileMutation.mutate(fileId);
-  };
-
   const handleDeselectAll = useCallback(() => {
     deselectAllFiles();
   }, [deselectAllFiles]);
@@ -304,38 +300,6 @@ export default function GalleryContent() {
     setContextMenuPosition({ x: e.clientX, y: e.clientY });
     setContextMenuFile(file);
   };
-
-  // Fix the infinite re-render by using a ref and useCallback
-  const handleViewDetails = useCallback(
-    (file: File) => {
-      // Store the file in the ref first
-      detailsFileRef.current = file;
-
-      // Use setTimeout to break the render cycle
-      setTimeout(() => {
-        setDetailsFile(detailsFileRef.current);
-      }, 0);
-
-      // Close context menu
-      setContextMenuPosition(null);
-      setContextMenuFile(null);
-    },
-    [setDetailsFile]
-  );
-
-  const handleAddToAlbum = useCallback(
-    (file: File) => {
-      // Select just this file and open the add to album dialog
-      deselectAllFiles();
-      toggleFileSelection(file.id);
-      setAddToAlbumOpen(true);
-
-      // Close context menu
-      setContextMenuPosition(null);
-      setContextMenuFile(null);
-    },
-    [deselectAllFiles, toggleFileSelection, setAddToAlbumOpen]
-  );
 
   // Get the title based on current view
   const getTitle = () => {

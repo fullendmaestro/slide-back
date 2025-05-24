@@ -19,22 +19,22 @@ interface Attachment {
 }
 
 export function MemoryPromptInput({ field }: any) {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // const [attachments, setAttachments] = useState<Attachment[]>([]);
+  // const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const uploadedAttachments = files.map((file) => ({
-      url: URL.createObjectURL(file), // Temporary URL for preview
-      name: file.name,
-      contentType: file.type,
-    }));
-    setAttachments((current) => [...current, ...uploadedAttachments]);
-  };
+  // const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  //   const files = Array.from(event.target.files || []);
+  //   const uploadedAttachments = files.map((file) => ({
+  //     url: URL.createObjectURL(file), // Temporary URL for preview
+  //     name: file.name,
+  //     contentType: file.type,
+  //   }));
+  //   setAttachments((current) => [...current, ...uploadedAttachments]);
+  // };
 
-  const handleRemoveAttachment = (index: number) => {
-    setAttachments((current) => current.filter((_, i) => i !== index));
-  };
+  // const handleRemoveAttachment = (index: number) => {
+  //   setAttachments((current) => current.filter((_, i) => i !== index));
+  // };
 
   return (
     <FormItem>
@@ -46,7 +46,7 @@ export function MemoryPromptInput({ field }: any) {
           {...field}
         />
       </FormControl>
-      <div className="mt-4 flex flex-col gap-2">
+      {/* <div className="mt-4 flex flex-col gap-2">
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {attachments.map((attachment, index) => (
@@ -78,7 +78,7 @@ export function MemoryPromptInput({ field }: any) {
           multiple
           onChange={handleFileChange}
         />
-      </div>
+      </div> */}
       <FormMessage />
     </FormItem>
   );

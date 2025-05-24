@@ -43,6 +43,7 @@ export const {
       }
 
       if (trigger === "update" && session?.user) {
+        console.log("updating session", { ...token, ...session.user });
         return { ...token, ...session.user };
       }
 

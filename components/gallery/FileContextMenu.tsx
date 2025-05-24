@@ -7,6 +7,9 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubTrigger,
+  ContextMenuSubContent,
 } from "@/components/ui/context-menu";
 import {
   Star,
@@ -19,6 +22,8 @@ import {
   Info,
   Eye,
   ScanEye,
+  MoreHorizontal,
+  X,
 } from "lucide-react";
 import type { File } from "@/lib/db/schema";
 import { useToggleFavorite, useDeleteFile } from "@/lib/hooks/useFiles";
@@ -27,9 +32,11 @@ import { useAlbumStore } from "@/lib/stores/albumStore";
 import { useCallback } from "react";
 import { useFileStore } from "@/lib/stores/fileStore";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { FileWithAlbum } from "@/lib/types";
 
 interface FileContextMenuProps {
-  file: File;
+  file: FileWithAlbum;
   children: React.ReactNode;
 }
 
@@ -38,6 +45,7 @@ export default function FileContextMenu({
   children,
 }: FileContextMenuProps) {
   const router = useRouter();
+  const queryClient = useQueryClient(); // Add this line
   const toggleFavoriteMutation = useToggleFavorite();
   const deleteFileMutation = useDeleteFile();
 
@@ -131,6 +139,21 @@ export default function FileContextMenu({
     }
   };
 
+  const handleRemoveFromAlbum = async (albumId: string) => {
+    try {
+      const res = await fetch(`/api/albums/${albumId}/remove-file`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId: file.id }),
+      });
+      if (!res.ok) throw new Error("Failed to remove from album");
+      toast.success("Removed from album", { description: file.name });
+      queryClient.invalidateQueries({ queryKey: ["files"] }); // Refresh files
+    } catch (e) {
+      toast.error("Failed to remove from album");
+    }
+  };
+
   // Update: Local handlers for Add to Album and View Details
   const handleAddToAlbum = () => {
     // Select just this file and open the add to album dialog
@@ -198,6 +221,33 @@ export default function FileContextMenu({
           <FileEdit className="mr-2 h-4 w-4" />
           Edit Description
         </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <FolderPlus className="mr-2 h-4 w-4" />
+            In Albums
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            {Array.isArray(file.albums) && file.albums.length > 0 ? (
+              file.albums.map((album: any) => (
+                <ContextMenuSub key={album.id}>
+                  <ContextMenuSubTrigger>{album.name}</ContextMenuSubTrigger>
+                  <ContextMenuSubContent>
+                    <ContextMenuItem
+                      onClick={() => handleRemoveFromAlbum(album.id)}
+                      className="text-red-600"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Remove from this album
+                    </ContextMenuItem>
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
+              ))
+            ) : (
+              <ContextMenuItem disabled>No albums</ContextMenuItem>
+            )}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={handleDelete} className="text-red-600">
           <Trash2 className="mr-2 h-4 w-4" />

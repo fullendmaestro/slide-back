@@ -107,6 +107,17 @@ export default function FilePreviewModal({
                       className="object-contain"
                     />
                   </div>
+                ) : currentFile.type === "video" && currentFile.url ? (
+                  <div className="relative w-full h-full">
+                    <video
+                      src={currentFile.url}
+                      controls
+                      className="object-contain w-full h-full rounded-lg bg-black"
+                      style={{ background: "#000" }}
+                    >
+                      Sorry, your browser doesn't support embedded videos.
+                    </video>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center">
                     <FileDisplayIcon
@@ -144,7 +155,7 @@ export default function FilePreviewModal({
 
           {/* Bottom info */}
           <div className="p-4 border-t">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground max-h-20 overflow-y-auto">
               {currentIndex + 1} of {files.length} •{" "}
               {currentFile.aiDescription || "No description"}
             </p>

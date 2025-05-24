@@ -344,9 +344,14 @@ export default function AlbumSidebar() {
               ) : (
                 <AnimatePresence>
                   {albums.map((album) => (
-                    <SidebarMenuItem key={album.id} className="relative group/album-item">
+                    <SidebarMenuItem
+                      key={album.id}
+                      className="relative group/album-item"
+                    >
                       <SidebarMenuButton
-                        isActive={currentView === "album" && currentAlbumId === album.id}
+                        isActive={
+                          currentView === "album" && currentAlbumId === album.id
+                        }
                         className={cn(
                           dropTargetId === album.id &&
                             "bg-primary/10 ring-2 ring-primary"
@@ -375,7 +380,7 @@ export default function AlbumSidebar() {
                               size="icon"
                               tabIndex={-1}
                               className="ml-auto h-6 w-6 opacity-0 group-hover/album-item:opacity-100 focus:opacity-100 absolute right-1 top-1/2 -translate-y-1/2"
-                              onClick={e => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>

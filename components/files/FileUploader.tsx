@@ -262,7 +262,7 @@ export default function FileUploader({ isOpen, onClose }: FileUploaderProps) {
               {files.length > 0 && (
                 <div>
                   <h3 className="text-lg font-medium mb-2">Files to Upload</h3>
-                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                  <div className="space-y-3 max-h-50 overflow-y-auto">
                     <AnimatePresence>
                       {files.map((file, index) => (
                         <motion.div
@@ -327,7 +327,7 @@ export default function FileUploader({ isOpen, onClose }: FileUploaderProps) {
               {uploadedFiles.length > 0 && (
                 <div>
                   <h3 className="text-lg font-medium mb-2">Uploaded Files</h3>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto max-h-50 overflow-y-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -452,7 +452,14 @@ export default function FileUploader({ isOpen, onClose }: FileUploaderProps) {
               )}
 
               {files.length === 0 && uploadedFiles.length > 0 && (
-                <Button onClick={handleComplete}>Finish</Button>
+                <Button
+                  onClick={() => {
+                    handleComplete();
+                    onClose();
+                  }}
+                >
+                  Finish
+                </Button>
               )}
             </div>
           )}

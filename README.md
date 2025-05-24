@@ -4,7 +4,7 @@
 
 ## Overview
 
-Slide Back is a memory gallery and slideshow app designed to help users revisit their cherished memories using AI. The gallery organizes your media through an immersive experience. And the slider create a slide show of your memories focusing on returning the most accurate and meaningful memories by leveraging advanced AI to surface moments that truly match your prompts.
+Slide Back is a memory gallery and slideshow app designed to help users revisit their cherished memories using AI. The gallery organizes your media through an immersive experience. And the slider create a slide show of your memories focusing on returning the most relevant and accurate memories by leveraging advanced AI to surface moments that truly match your prompts.
 
 ## How it works
 
@@ -16,11 +16,11 @@ Describe the memories you want to revisit using natural language—for example, 
 
 ### Gallery
 
-Upload your photos and videos to the gallery. AI automatically generates descriptions for your media, which are used for semantic search. You can also edit these descriptions to add your own keywords (e.g name of persons and places), improving future search results and giving you more control over how your memories are found.
+Upload your photos and videos to the gallery. AI automatically generates descriptions for your media, which are used for semantic search. You can also edit these descriptions to add your own keywords (e.g name of persons and places), thereby improving future search results and giving you more control over how your memories are found.
 
 ## UI UX
 
-Slid back is developed mainly for desktop experience with context menu for performing actions. Howwever its will also works fine on mobile experience also.
+Slid back is developed mainly for desktop experience with context menu for performing quick actions. Howwever it will also works fine for mobile experience also.
 
 ## Features
 
@@ -35,7 +35,7 @@ Slid back is developed mainly for desktop experience with context menu for perfo
 - **Slideshow Player**: Immersive fullscreen experience
 
   - Smooth transitions between slides
-  - Background blur for enhanced focus
+  - Blury background for enhanced focus
   - Playback controls with auto-hide functionality
   - Customizable playback speed and options
 
@@ -70,7 +70,8 @@ Slid back is developed mainly for desktop experience with context menu for perfo
 
 ### Prerequisites
 
-Node.js, pnpm or npm, Git
+- Node.js, pnpm or npm, Git.
+- [Google Gemini API](https://cloud.google.com/vertex-ai), [Vercel Blob](https://vercel.com/docs/storage/vercel-blob), [Postgres](https://vercel.com/docs/storage/vercel-postgres/quickstart),
 
 ### Step 1: Clone the Repository
 
@@ -112,12 +113,15 @@ pnpm run dev
 
 For more details on the project structure, tech stack, project architecture, etc, check out the [Docs.md](Docs.md) file
 
-
 ## Demos
 
 https://github.com/user-attachments/assets/83096637-f524-4ada-aee2-db8f1e58a88b
 
 https://github.com/user-attachments/assets/4f64d76f-3ff8-4fb4-9ffb-b85dd140991e
+
+## License
+
+This project is protected under the [Apache License](http://www.apache.org/licenses/LICENSE-2.0/) License. For more details, refer to the [LICENSE](LICENSE) file.
 
 ## License
 

@@ -42,19 +42,8 @@ export default function SlideshowPlayerWrapper() {
             No memories found. Try a different search.
           </div>
         ) : (
-          <SlideshowPlayer slides={slides} />
+          <SlideshowPlayer slides={slides} onExit={handleExit} />
         )}
-
-        {/* Exit button positioned on top of the player */}
-        <Button
-          variant="ghost"
-          onClick={handleExit}
-          className="absolute top-4 left-4 z-50 text-white bg-black/50 hover:bg-black/70 backdrop-blur-sm px-3 py-2 h-auto rounded-lg flex items-center space-x-1.5 transition-colors duration-150 shadow-lg"
-          aria-label="Exit Slideshow"
-        >
-          <ChevronLeft className="h-5 w-5" />
-          <span className="text-sm font-medium">Exit Slideshow</span>
-        </Button>
       </div>
     </div>
   );

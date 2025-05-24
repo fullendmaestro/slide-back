@@ -28,9 +28,13 @@ export interface SlideshowOptions {
 
 interface SlideshowPlayerProps {
   slides: SlideData[];
+  onExit: () => void;
 }
 
-export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
+export default function SlideshowPlayer({
+  slides,
+  onExit,
+}: SlideshowPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentSpeed, setCurrentSpeed] = useState(DEFAULT_SPEED);
@@ -103,7 +107,12 @@ export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
     }
     setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
     setProgress(0);
-  }, [slides.length, options.autoLoopEnabled, currentIndex, currentSlideDuration]);
+  }, [
+    slides.length,
+    options.autoLoopEnabled,
+    currentIndex,
+    currentSlideDuration,
+  ]);
 
   const handlePreviousSlide = () => {
     setCurrentIndex(
@@ -288,89 +297,108 @@ export default function SlideshowPlayer({ slides }: SlideshowPlayerProps) {
   );
 
   return (
-    <div
-      ref={playerRef}
-      className="relative w-full h-full bg-neutral-900 overflow-hidden group"
-      onClick={(e) => {
-        const target = e.target as HTMLElement;
-        // If click is on background and controls are hidden, show them.
-        // If click is on background and controls are visible, let timer hide them (or user interacts with controls).
-        if (
-          !target.closest(".player-controls-bar") &&
-          !target.closest("[data-radix-popover-content]") &&
-          !target.closest(".carousel-button")
-        ) {
-          if (!controlsVisible) showControlsAndResetTimer();
-        }
-      }}
-      onContextMenu={(e) => {
-        e.preventDefault(); // Prevent default context menu
-        showControlsAndResetTimer(); // Treat as activity
-      }}
-      onTouchStart={showControlsAndResetTimer} // Show controls on touch
-    >
-      {slides.map((slide, index) => (
-        <Slide key={slide.id} slide={slide} isActive={index === currentIndex} />
-      ))}
+    <>
+      <div
+        ref={playerRef}
+        className="relative w-full h-full bg-neutral-900 overflow-hidden group"
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          // If click is on background and controls are hidden, show them.
+          // If click is on background and controls are visible, let timer hide them (or user interacts with controls).
+          if (
+            !target.closest(".player-controls-bar") &&
+            !target.closest("[data-radix-popover-content]") &&
+            !target.closest(".carousel-button")
+          ) {
+            if (!controlsVisible) showControlsAndResetTimer();
+          }
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault(); // Prevent default context menu
+          showControlsAndResetTimer(); // Treat as activity
+        }}
+        onTouchStart={showControlsAndResetTimer} // Show controls on touch
+      >
+        {slides.map((slide, index) => (
+          <Slide
+            key={slide.id}
+            slide={slide}
+            isActive={index === currentIndex}
+          />
+        ))}
 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            handlePreviousSlide();
+            showControlsAndResetTimer();
+          }}
+          className={cn(carouselButtonClasses, "left-4 carousel-button")}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            handleNextSlide();
+            showControlsAndResetTimer();
+          }}
+          className={cn(carouselButtonClasses, "right-4 carousel-button")}
+          aria-label="Next slide"
+        >
+          <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
+        </Button>
+
+        <PlayerControls
+          isPlaying={isPlaying}
+          onPlayPause={() => {
+            handlePlayPause();
+            showControlsAndResetTimer();
+          }}
+          onRestart={() => {
+            handleRestart();
+            showControlsAndResetTimer();
+          }}
+          currentSpeed={currentSpeed}
+          onSpeedChange={(speed) => {
+            handleSpeedChange(speed);
+            showControlsAndResetTimer();
+          }}
+          isFullscreen={isFullscreen}
+          onFullscreenToggle={() => {
+            handleFullscreenToggle();
+            showControlsAndResetTimer();
+          }}
+          isVisible={controlsVisible}
+          options={options}
+          setOptions={setOptions}
+          onMusicSelect={(track) => {
+            handleMusicSelect(track);
+            showControlsAndResetTimer();
+          }}
+          isMuted={isMuted}
+          onMuteToggle={() => {
+            handleMuteToggle();
+            showControlsAndResetTimer();
+          }}
+        />
+      </div>
+      {/* Exit button positioned on top of the player */}
       <Button
         variant="ghost"
-        size="icon"
         onClick={() => {
-          handlePreviousSlide();
-          showControlsAndResetTimer();
+          setIsMuted(true);
+          onExit();
         }}
-        className={cn(carouselButtonClasses, "left-4 carousel-button")}
-        aria-label="Previous slide"
+        className="absolute top-4 left-4 z-50 text-white bg-black/50 hover:bg-black/70 backdrop-blur-sm px-3 py-2 h-auto rounded-lg flex items-center space-x-1.5 transition-colors duration-150 shadow-lg"
+        aria-label="Exit Slideshow"
       >
-        <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
+        <ChevronLeft className="h-5 w-5" />
+        <span className="text-sm font-medium">Exit Slideshow</span>
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => {
-          handleNextSlide();
-          showControlsAndResetTimer();
-        }}
-        className={cn(carouselButtonClasses, "right-4 carousel-button")}
-        aria-label="Next slide"
-      >
-        <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
-      </Button>
-
-      <PlayerControls
-        isPlaying={isPlaying}
-        onPlayPause={() => {
-          handlePlayPause();
-          showControlsAndResetTimer();
-        }}
-        onRestart={() => {
-          handleRestart();
-          showControlsAndResetTimer();
-        }}
-        currentSpeed={currentSpeed}
-        onSpeedChange={(speed) => {
-          handleSpeedChange(speed);
-          showControlsAndResetTimer();
-        }}
-        isFullscreen={isFullscreen}
-        onFullscreenToggle={() => {
-          handleFullscreenToggle();
-          showControlsAndResetTimer();
-        }}
-        isVisible={controlsVisible}
-        options={options}
-        setOptions={setOptions}
-        onMusicSelect={(track) => {
-          handleMusicSelect(track);
-          showControlsAndResetTimer();
-        }}
-        isMuted={isMuted}
-        onMuteToggle={() => {
-          handleMuteToggle();
-          showControlsAndResetTimer();
-        }}
-      />
-    </div>
+    </>
   );
 }

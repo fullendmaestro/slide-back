@@ -53,12 +53,26 @@ export async function POST(request: Request) {
     }
 
     // Add files to the album
-    const albumFilesToInsert = fileIds.map((fileId) => ({
-      albumId,
-      fileId,
-    }));
+    // First, check which files are already in the album
+    const existingAlbumFiles = await db.query.albumFile.findMany({
+      where: and(
+        eq(albumFile.albumId, albumId),
+        inArray(albumFile.fileId, fileIds)
+      ),
+    });
 
-    await db.insert(albumFile).values(albumFilesToInsert);
+    // Get fileIds that are not already in the album
+    const existingFileIds = new Set(existingAlbumFiles.map((af) => af.fileId));
+    const albumFilesToInsert = fileIds
+      .filter((fileId) => !existingFileIds.has(fileId))
+      .map((fileId) => ({
+        albumId,
+        fileId,
+      }));
+
+    if (albumFilesToInsert.length > 0) {
+      await db.insert(albumFile).values(albumFilesToInsert);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
