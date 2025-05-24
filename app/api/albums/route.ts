@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
 import { db } from "@/lib/db";
-import { album } from "@/lib/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { album, albumFile } from "@/lib/db/schema"; // <-- import albumFile join table
+import { asc, eq, sql, inArray } from "drizzle-orm";
 
 // Get all albums for the current user
 export async function GET() {
@@ -13,12 +13,34 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Fetch albums and count items in each album
     const albums = await db.query.album.findMany({
       where: eq(album.userId, session.user.id),
       orderBy: [asc(album.name)],
     });
 
-    return NextResponse.json(albums);
+    // Get item counts for each album
+    const albumIds = albums.map((a) => a.id);
+    let itemCounts: Record<string, number> = {};
+    if (albumIds.length > 0) {
+      const counts = await db
+        .select({ albumId: albumFile.albumId, count: sql<number>`COUNT(*)` })
+        .from(albumFile)
+        .where(inArray(albumFile.albumId, albumIds))
+        .groupBy(albumFile.albumId);
+
+      counts.forEach((row: { albumId: string; count: number }) => {
+        itemCounts[row.albumId] = Number(row.count);
+      });
+    }
+
+    // Attach itemCount to each album
+    const albumsWithCount = albums.map((a) => ({
+      ...a,
+      itemCount: itemCounts[a.id] || 0,
+    }));
+
+    return NextResponse.json(albumsWithCount);
   } catch (error) {
     console.error("Error fetching albums:", error);
     return NextResponse.json(
