@@ -391,6 +391,10 @@ export default function SlideshowPlayer({
         variant="ghost"
         onClick={() => {
           setIsMuted(true);
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+          }
           onExit();
         }}
         className="absolute top-4 left-4 z-50 text-white bg-black/50 hover:bg-black/70 backdrop-blur-sm px-3 py-2 h-auto rounded-lg flex items-center space-x-1.5 transition-colors duration-150 shadow-lg"
