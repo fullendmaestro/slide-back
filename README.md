@@ -103,11 +103,19 @@ BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
 pnpm run db:migrate
 ```
 
-### Step 5: Start the development server:
+### Step 5 (Optional): Enable gemini pro model:
+
+This project uses gemini flash by default, however, gemini pro model is more capable with vision capabilities. You can optionally enable gemini pro model by heading to `lib\ai\generateDescription.ts` and `lib\ai\embedding.ts` to uncomment the `model: google("gemini-1.5-pro-002"),` and comment `model: google("gemini-1.5-flash-002")`. This ensures better ai memory description and discovery
+
+### Step 6: Start the development server:
 
 ```bash
 pnpm run dev
 ```
+
+## Notes
+
+The vercel blob service used for this project only support 5mb maximum single file upload
 
 ## Docs
 

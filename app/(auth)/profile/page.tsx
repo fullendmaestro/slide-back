@@ -25,7 +25,6 @@ import { ProfileImageUploader } from "@/components/profile/profile-image-uploade
 export default function ProfilePage() {
   const { data: session, update: updateSession } = useSession();
   const router = useRouter();
-  const [isSuccessful, setIsSuccessful] = useState(false);
 
   const [state, formAction] = useActionState<
     ProfileUpdateActionState,
@@ -51,9 +50,11 @@ export default function ProfilePage() {
       toast.error("Failed validating your submission!");
     } else if (state.status === "success") {
       toast.success("Profile updated successfully!");
-      setIsSuccessful(true);
       console.log(state);
-      updateSession();
+      (async () => {
+        await updateSession(session);
+      })();
+      state.status = "idle"; // Reset state to idle after success
     }
   }, [state.status]);
 
@@ -113,9 +114,7 @@ export default function ProfilePage() {
                 Email cannot be changed
               </p>
             </div>
-            <SubmitButton isSuccessful={isSuccessful}>
-              Update Profile
-            </SubmitButton>
+            <SubmitButton>Update Profile</SubmitButton>
           </Form>
         </CardContent>
         <CardFooter className="flex justify-between">

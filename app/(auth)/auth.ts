@@ -42,9 +42,15 @@ export const {
         token.image = user.image || null;
       }
 
-      if (trigger === "update" && session?.user) {
-        console.log("updating session", { ...token, ...session.user });
-        return { ...token, ...session.user };
+      if (trigger === "update" && session?.user?.email) {
+        // Always fetch latest user data from DB
+        const users = await getUser(session.user.email);
+        const latestUser = users[0];
+        if (latestUser) {
+          token.id = latestUser.id;
+          token.name = latestUser.name || null;
+          token.image = latestUser.image || null;
+        }
       }
 
       return token;

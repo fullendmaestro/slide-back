@@ -51,6 +51,7 @@ export async function generateFileDescription(
     }
 
     const { text } = await generateText({
+      // model: google("gemini-1.5-pro-002"),
       model: google("gemini-1.5-flash-002"),
       prompt,
       temperature: 0.7, // Add some creativity but keep it factual

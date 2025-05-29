@@ -48,6 +48,7 @@ export async function GET(request: Request) {
     // For each file, get its albums
     const filesWithAlbums = await Promise.all(
       files.map(async (f) => {
+        const { embedding, ...fileWithoutEmbedding } = f; // Remove embedding
         const fileAlbums = await db.query.albumFile.findMany({
           where: eq(albumFile.fileId, f.id),
           with: {
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
         });
 
         return {
-          ...f,
+          ...fileWithoutEmbedding,
           albums: fileAlbums.map((fa) => fa.album),
         };
       })

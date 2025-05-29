@@ -61,7 +61,8 @@ export function ProfileImageUploader() {
         image: data.url,
       };
 
-      await updateSession({ ...session, user: newUserData });
+      // No need to pass user data, just trigger update
+      await updateSession(session);
 
       toast.success("Profile image updated successfully");
       setIsOpen(false);

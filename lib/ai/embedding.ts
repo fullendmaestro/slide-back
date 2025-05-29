@@ -168,6 +168,7 @@ export async function reviewContentWithAI(
 
       // Use generateObject for structured output
       const { object } = await generateObject({
+        // model: google("gemini-1.5-pro-002"),
         model: google("gemini-1.5-flash-002"),
         schema: z.object({
           relevantIds: z.array(z.string()),

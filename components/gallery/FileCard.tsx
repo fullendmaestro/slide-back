@@ -27,7 +27,6 @@ export default function FileCard({
   onDoubleClick,
   viewMode,
 }: FileCardProps) {
-  console.log("FileCard", file);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const isImageFile = file.type === "image" && file.url;
