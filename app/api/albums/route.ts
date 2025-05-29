@@ -21,7 +21,7 @@ export async function GET() {
 
     // Get item counts for each album
     const albumIds = albums.map((a) => a.id);
-    let itemCounts: Record<string, number> = {};
+    const itemCounts: Record<string, number> = {};
     if (albumIds.length > 0) {
       const counts = await db
         .select({ albumId: albumFile.albumId, count: sql<number>`COUNT(*)` })
